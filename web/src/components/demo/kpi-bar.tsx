@@ -11,12 +11,13 @@ function Tile({ label, value }: { label: string; value: string }) {
 
 export function KpiBar({ stats }: { stats: TraceStats }) {
   return (
-    <div className="grid grid-cols-2 gap-3 md:grid-cols-6">
+    <div className="grid grid-cols-2 gap-3 md:grid-cols-7">
       <Tile label="Model" value={SPARK_KPIS.model} />
       <Tile label="Hardware" value={SPARK_KPIS.hardware} />
       <Tile label="Median TTFT" value={`${SPARK_KPIS.medianTtftSeconds}s`} />
       <Tile label="Decode" value={`${SPARK_KPIS.decodeTokensPerSecond} tok/s`} />
       <Tile label="Tool calls" value={`${stats.toolCalls}`} />
+      <Tile label="Rounds" value={`${stats.rounds}`} />
       <Tile label="Blocked" value={`${stats.blocked}`} />
     </div>
   );

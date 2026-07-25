@@ -20,6 +20,7 @@ export default function DemoPage() {
   const activeEvidenceIds = useMemo(() => {
     const ids = new Set<string>();
     if (!graph || trace.length === 0) return ids;
+    // tool_trace has no per-action evidence_ids, so we drive the graph highlight by replay progress: reveal nodes proportionally as the cursor advances.
     const revealCount = Math.ceil((cursor / trace.length) * graph.nodes.length);
     graph.nodes.slice(0, revealCount).forEach((n) => n.evidence_ids.forEach((id) => ids.add(id)));
     return ids;
