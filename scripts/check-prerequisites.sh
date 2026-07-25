@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-required=(aria2c docker git hf jq ollama shellcheck skopeo uv)
-optional=(llama-server utmctl)
+required=(docker git hf jq shellcheck uv)
+optional=(aria2c llama-server ollama skopeo utmctl)
 failed=0
 
 for command_name in "${required[@]}"; do
@@ -21,13 +21,6 @@ for command_name in "${optional[@]}"; do
     printf "optional %s\n" "${command_name}"
   fi
 done
-
-if ollama show gemma4:e4b >/dev/null 2>&1; then
-  printf "ok       gemma4:e4b\n"
-else
-  printf "missing  gemma4:e4b\n"
-  failed=1
-fi
 
 if [[ -x ".venv/bin/python" ]]; then
   printf "ok       .venv/bin/python\n"

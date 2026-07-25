@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# Synthetic ransomware stub for the Gemma IR lab. Does not encrypt real data.
+data_dir="/srv/hospital-data"
+while IFS= read -r -d '' study; do
+  printf "SYNTHETIC LOCKED PLACEHOLDER\n" >"${study}.locked"
+  logger -p auth.warning -t pacs-crypt "pacs-crypt wrote ${study}.locked"
+done < <(find "${data_dir}" -type f -name '*.dcm' -print0)
+printf "Your imaging data has been locked. (synthetic lab note)\n" \
+  >"${data_dir}/HOW_TO_DECRYPT.txt"
+logger -p auth.warning -t pacs-crypt \
+  "pacs-crypt wrote ${data_dir}/HOW_TO_DECRYPT.txt"

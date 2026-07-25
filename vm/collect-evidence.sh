@@ -27,7 +27,8 @@ trap cleanup EXIT
 install -d -m 0700 \
   "${evidence_dir}/commands" \
   "${evidence_dir}/files/etc/systemd/system" \
-  "${evidence_dir}/files/var/log"
+  "${evidence_dir}/files/var/log" \
+  "${evidence_dir}/proxy"
 
 capture() {
   local output_name="$1"
@@ -60,7 +61,12 @@ capture journal journalctl --since "24 hours ago" --no-pager --output=short-iso-
 capture audit_search ausearch --start today --raw
 capture package_debsums dpkg-query -W -f="\${binary:Package}\t\${Version}\n"
 capture cron find /etc/cron.d /etc/cron.daily /var/spool/cron -maxdepth 2 -ls
+# Storage state shows the ransomware impact: encrypted .locked files present and
+# the nightly backup directory destroyed.
+capture storage ls -la /srv/hospital-data /srv/backups
 
+# One collector serves both scenarios; ransomware artifacts are only copied when
+# present, so the guard below keeps the compromise/intrusion cases independent.
 for source_path in \
   /etc/passwd \
   /etc/group \
@@ -68,6 +74,15 @@ for source_path in \
   /home/backup-admin/.ssh/authorized_keys \
   /etc/systemd/system/pacs-health-sync.service \
   /usr/local/bin/pacs-health-sync \
+  /etc/systemd/system/pacs-archive.service \
+  /usr/local/bin/pacs-crypt \
+  /var/www/pacs/uploads/.cache.php \
+  /etc/sudoers.d/pacs-maintenance \
+  /etc/cron.d/pacs-index \
+  /usr/local/bin/pacs-index-update \
+  /etc/pacs/app-credentials.env \
+  /var/log/nginx/access.log \
+  /srv/hospital-data/HOW_TO_DECRYPT.txt \
   /var/log/auth.log \
   /var/log/audit/audit.log; do
   if [[ -f "${source_path}" ]]; then
@@ -76,6 +91,14 @@ for source_path in \
     cp --preserve=mode,timestamps "${source_path}" "${destination}"
   fi
 done
+
+# External-style telemetry is kept outside files/ so scope and exfiltration
+# tools can distinguish it from host-local logs.
+if [[ -f /var/log/gemma-ir-external/proxy.log ]]; then
+  cp --preserve=mode,timestamps \
+    /var/log/gemma-ir-external/proxy.log \
+    "${evidence_dir}/proxy/egress.log"
+fi
 
 jq -n \
   --arg case_id "${case_id}" \

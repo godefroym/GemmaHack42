@@ -19,6 +19,13 @@ cases/*
 eval/results/*
 !cases/.gitkeep
 !eval/results/.gitkeep
+# Selected published benchmark artifacts are tracked explicitly. New runs remain
+# ignored because they can contain complete model responses.
 
 # Downloaded third-party test definitions
 third_party/atomic-red-team/
+
+# Landing page build output
+web/node_modules/
+web/.next/
+web/.vercel

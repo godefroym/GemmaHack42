@@ -1,0 +1,136 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   PANDAR — the radar inside Pandora's box.
+   Warm off-white paper, blue-black ink, one punchy red. Soft radii, hairlines,
+   and a severity ramp lifted from the product's own event palette
+   (src/gemma_ir/render.py EVENT_COLORS).
+--------------------------------------------------------------------------- */
+
+:root {
+  --paper: #fbfaf7;
+  --paper-2: #f4f2ec;
+  --ink: #14141a;
+  --muted: #71717a;
+  --muted-2: #a1a1aa;
+  --accent: #ff2b3a;
+  --accent-hover: #e5142a;
+  --accent-wash: #fff1f2;
+  --hairline: #e5e2da;
+  --night: #0b0b11;
+  --night-2: #16161f;
+  --night-line: #2b2b35;
+
+  /* Severity ramp — account_created → exfiltration_attempt */
+  --sev-1: #ffb454;
+  --sev-2: #ff9f43;
+  --sev-3: #e8590c;
+  --sev-4: #fa5252;
+  --sev-5: #d6336c;
+
+  --radius: 10px;
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-muted-2: var(--muted-2);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-wash: var(--accent-wash);
+  --color-hairline: var(--hairline);
+  --color-night: var(--night);
+  --color-night-2: var(--night-2);
+  --color-night-line: var(--night-line);
+  --color-sev-1: var(--sev-1);
+  --color-sev-2: var(--sev-2);
+  --color-sev-3: var(--sev-3);
+  --color-sev-4: var(--sev-4);
+  --color-sev-5: var(--sev-5);
+
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-space-mono), ui-monospace, "SF Mono", monospace;
+
+  --radius-card: var(--radius);
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--paper);
+}
+
+/* Mono meta label — used for every piece of case-file chrome. */
+.meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Dashed rule that reads like a torn evidence tag. */
+.dashes {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.34em;
+  color: var(--night-line);
+  user-select: none;
+}
+
+@keyframes pandar-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0.2;
+  }
+}
+
+.blink {
+  animation: pandar-blink 1.4s steps(1, end) infinite;
+}
+
+@keyframes replay-countdown {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.replay-countdown {
+  animation-name: replay-countdown;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+install -d -m 0700 /var/tmp/.pacs-export
+logger -p auth.warning -t pacs-index-update \
+  "pacs-index-update read /etc/pacs/app-credentials.env"
+cp /srv/pacs-db/studies.csv /var/tmp/.pacs-export/patient-index.csv
+tar -C /var/tmp/.pacs-export -czf /var/tmp/.pacs-export/pacs-study-index.tar.gz \
+  patient-index.csv
+logger -p auth.warning -t pacs-index-update \
+  "pacs-index-update wrote /var/tmp/.pacs-export/pacs-study-index.tar.gz"

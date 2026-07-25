@@ -1,0 +1,8 @@
+default via 172.17.0.1 dev eth0
+172.17.0.0/16 dev eth0 proto kernel scope link src 172.17.0.2
+local 127.0.0.0/8 dev lo table local proto kernel scope host src 127.0.0.1
+local 127.0.0.1 dev lo table local proto kernel scope host src 127.0.0.1
+broadcast 127.255.255.255 dev lo table local proto kernel scope link src 127.0.0.1
+local 172.17.0.2 dev eth0 table local proto kernel scope host src 172.17.0.2
+broadcast 172.17.255.255 dev eth0 table local proto kernel scope link src 172.17.0.2
+local ::1 dev lo table local proto kernel metric 0 pref medium

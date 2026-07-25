@@ -1,0 +1,4 @@
+runlevel (to lvl 5)   Sat Jul 25 13:44:38 2026   still running                         0.0.0.0
+reboot   system boot  Sat Jul 25 13:44:38 2026   still running                         0.0.0.0
+
+wtmp begins Sat Jul 25 13:44:38 2026

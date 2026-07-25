@@ -1,0 +1,10 @@
+   187500      4 drwxr-xr-x   1 root     root         4096 Jul 25 13:44 /etc/cron.d
+   157914      4 -rw-r--r--   1 root     root          202 Apr  8  2024 /etc/cron.d/e2scrub_all
+   173445      4 -rw-r--r--   1 root     root           48 Jul 25 13:44 /etc/cron.d/pacs-index
+   187501      4 -rw-r--r--   1 root     root          102 Mar 31  2024 /etc/cron.d/.placeholder
+   187503      4 drwxr-xr-x   1 root     root         4096 Jul 25 13:44 /etc/cron.daily
+   157920      4 -rwxr-xr-x   1 root     root          123 Feb  5  2024 /etc/cron.daily/dpkg
+   157918      4 -rwxr-xr-x   1 root     root         1478 Mar 22  2024 /etc/cron.daily/apt-compat
+   187504      4 -rw-r--r--   1 root     root          102 Mar 31  2024 /etc/cron.daily/.placeholder
+   222164      4 drwxr-xr-x   3 root     root         4096 Jul 25 13:44 /var/spool/cron
+   222166      4 drwx-wx--T   2 root     crontab      4096 Mar 31  2024 /var/spool/cron/crontabs

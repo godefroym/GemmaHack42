@@ -1,0 +1,13 @@
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  9.8  0.1  20700 11564 ?        Ss   13:44   0:00 /sbin/init
+root          28  3.5  0.1  33688 11628 ?        S<s  13:44   0:00 /usr/lib/systemd/systemd-journald
+root          82  0.0  0.0   4164  2432 ?        Ss   13:44   0:00 /usr/sbin/cron -f -P
+root          87  0.0  0.0   2692  1680 tty1     Ss+  13:44   0:00 /sbin/agetty -o -p -- \u --noclear - linux
+root          88  0.0  0.0   2692  1692 tty2     Ss+  13:44   0:00 /sbin/agetty -o -p -- \u --noclear - linux
+root          89  0.0  0.0   2692  1692 tty3     Ss+  13:44   0:00 /sbin/agetty -o -p -- \u --noclear - linux
+root          94  0.0  0.0   2692  1736 tty4     Ss+  13:44   0:00 /sbin/agetty -o -p -- \u --noclear - linux
+root          95  0.0  0.0   2692  1688 tty5     Ss+  13:44   0:00 /sbin/agetty -o -p -- \u --noclear - linux
+root          96  0.0  0.0   2692  1712 tty6     Ss+  13:44   0:00 /sbin/agetty -o -p -- \u --noclear - linux
+root         211  0.0  0.0   4036  3068 ?        Ss   13:44   0:00 bash ./collect-evidence.sh hospital-webshell /tmp
+root         227  0.0  0.0   2280  1356 ?        S    13:44   0:00 timeout --signal=TERM --kill-after=2s 30s ps auxww
+root         228  0.0  0.0   7632  3648 ?        R    13:44   0:00 ps auxww

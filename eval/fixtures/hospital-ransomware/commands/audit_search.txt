@@ -1,0 +1,6 @@
+2026-08-14T02:08:30+00:00 audit: execve /usr/bin/systemctl stop pacs-archive actor=pacs-service
+2026-08-14T02:09:44+00:00 audit: execve /bin/rm -rf /srv/backups/pacs-nightly actor=pacs-service
+2026-08-14T02:10:07+00:00 audit: execve /usr/sbin/lvremove -f vg0/pacs-snap actor=pacs-service
+2026-08-14T02:12:03+00:00 audit: pacs-crypt wrote /srv/hospital-data/patient-4821/study.dcm.locked
+2026-08-14T02:12:20+00:00 audit: pacs-crypt wrote /srv/hospital-data/patient-5190/series-3.dcm.locked
+2026-08-14T02:12:41+00:00 audit: pacs-crypt wrote /srv/hospital-data/HOW_TO_DECRYPT.txt

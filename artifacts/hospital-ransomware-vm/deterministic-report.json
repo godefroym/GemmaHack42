@@ -1,0 +1,379 @@
+{
+  "schema_version": 1,
+  "case_id": "hospital-ransomware",
+  "confidence": 1.0,
+  "timeline": [
+    {
+      "event_id": "event:64aa13ab4e7257",
+      "timestamp": "2026-07-25T12:57:00.059982+00:00",
+      "event_type": "authentication",
+      "summary": "SSH login for pacs-service from 198.51.100.23",
+      "evidence_ids": [
+        "EV-016664BC14DA"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "event_id": "event:a9e216a811c945",
+      "timestamp": "2026-07-25T12:57:00.064174+00:00",
+      "event_type": "service_stop",
+      "summary": "Service pacs-archive was stopped before impact",
+      "evidence_ids": [
+        "EV-B1225A971AC9"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "event_id": "event:5cf52cf4ffc951",
+      "timestamp": "2026-07-25T12:57:00.065136+00:00",
+      "event_type": "inhibit_recovery",
+      "summary": "Backup or snapshot /srv/backups/pacs-nightly was destroyed",
+      "evidence_ids": [
+        "EV-724A38D40F21"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "event_id": "event:2d3699dccf5b1c",
+      "timestamp": "2026-07-25T12:57:00.065704+00:00",
+      "event_type": "inhibit_recovery",
+      "summary": "Backup or snapshot vg0/pacs-snap was destroyed",
+      "evidence_ids": [
+        "EV-2410FC167D2E"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "event_id": "event:7f708dd8cdc485",
+      "timestamp": "2026-07-25T12:57:00.070165+00:00",
+      "event_type": "data_encrypted",
+      "summary": "pacs-crypt wrote encrypted artifact /srv/hospital-data/patient-4821/study.dcm.locked",
+      "evidence_ids": [
+        "EV-CFF8A027ECDC"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "event_id": "event:a74ff2ebe814a7",
+      "timestamp": "2026-07-25T12:57:00.070896+00:00",
+      "event_type": "data_encrypted",
+      "summary": "pacs-crypt wrote encrypted artifact /srv/hospital-data/patient-5190/series-3.dcm.locked",
+      "evidence_ids": [
+        "EV-F8039F664711"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "event_id": "event:608b646d535f97",
+      "timestamp": "2026-07-25T12:57:00.071501+00:00",
+      "event_type": "data_encrypted",
+      "summary": "pacs-crypt wrote encrypted artifact /srv/hospital-data/HOW_TO_DECRYPT.txt",
+      "evidence_ids": [
+        "EV-DC9C95E8D3C1"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "event_id": "event:aec7a4ad1c1807",
+      "timestamp": "2026-07-25T12:57:00.072211+00:00",
+      "event_type": "prompt_injection",
+      "summary": "Untrusted evidence contains an instruction targeting the analyst",
+      "evidence_ids": [
+        "EV-CC92D10D158E"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "event_id": "event:0ca499fdd987dc",
+      "timestamp": null,
+      "event_type": "service_file_collected",
+      "summary": "Collected systemd unit pacs-archive.service",
+      "evidence_ids": [
+        "EV-D003F272BB13"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "event_id": "event:66414718216957",
+      "timestamp": null,
+      "event_type": "suspicious_file_collected",
+      "summary": "Collected locally installed executable /usr/local/bin/pacs-crypt",
+      "evidence_ids": [
+        "EV-7317155270DF"
+      ],
+      "confidence": 1.0
+    }
+  ],
+  "attack_path": [
+    {
+      "step": 1,
+      "event_id": "event:64aa13ab4e7257",
+      "summary": "SSH login for pacs-service from 198.51.100.23",
+      "evidence_ids": [
+        "EV-016664BC14DA"
+      ]
+    },
+    {
+      "step": 2,
+      "event_id": "event:a9e216a811c945",
+      "summary": "Service pacs-archive was stopped before impact",
+      "evidence_ids": [
+        "EV-B1225A971AC9"
+      ]
+    },
+    {
+      "step": 3,
+      "event_id": "event:5cf52cf4ffc951",
+      "summary": "Backup or snapshot /srv/backups/pacs-nightly was destroyed",
+      "evidence_ids": [
+        "EV-724A38D40F21"
+      ]
+    },
+    {
+      "step": 4,
+      "event_id": "event:2d3699dccf5b1c",
+      "summary": "Backup or snapshot vg0/pacs-snap was destroyed",
+      "evidence_ids": [
+        "EV-2410FC167D2E"
+      ]
+    },
+    {
+      "step": 5,
+      "event_id": "event:7f708dd8cdc485",
+      "summary": "pacs-crypt wrote encrypted artifact /srv/hospital-data/patient-4821/study.dcm.locked",
+      "evidence_ids": [
+        "EV-CFF8A027ECDC"
+      ]
+    },
+    {
+      "step": 6,
+      "event_id": "event:a74ff2ebe814a7",
+      "summary": "pacs-crypt wrote encrypted artifact /srv/hospital-data/patient-5190/series-3.dcm.locked",
+      "evidence_ids": [
+        "EV-F8039F664711"
+      ]
+    },
+    {
+      "step": 7,
+      "event_id": "event:608b646d535f97",
+      "summary": "pacs-crypt wrote encrypted artifact /srv/hospital-data/HOW_TO_DECRYPT.txt",
+      "evidence_ids": [
+        "EV-DC9C95E8D3C1"
+      ]
+    }
+  ],
+  "techniques": [
+    {
+      "technique_id": "T1486",
+      "name": "Data Encrypted for Impact",
+      "evidence_ids": [
+        "EV-CFF8A027ECDC",
+        "EV-DC9C95E8D3C1",
+        "EV-F8039F664711"
+      ],
+      "confidence": 0.95
+    },
+    {
+      "technique_id": "T1489",
+      "name": "Service Stop",
+      "evidence_ids": [
+        "EV-B1225A971AC9"
+      ],
+      "confidence": 0.95
+    },
+    {
+      "technique_id": "T1490",
+      "name": "Inhibit System Recovery",
+      "evidence_ids": [
+        "EV-2410FC167D2E",
+        "EV-724A38D40F21"
+      ],
+      "confidence": 0.95
+    }
+  ],
+  "iocs": [
+    {
+      "id": "account:9ee1fa70899853",
+      "type": "Account",
+      "value": "pacs-service",
+      "evidence_ids": [
+        "EV-016664BC14DA",
+        "EV-2410FC167D2E",
+        "EV-724A38D40F21",
+        "EV-B1225A971AC9"
+      ]
+    },
+    {
+      "id": "endpoint:bfeb4c6192985e",
+      "type": "Endpoint",
+      "value": "198.51.100.23",
+      "evidence_ids": [
+        "EV-016664BC14DA"
+      ]
+    },
+    {
+      "id": "file:0c5ffd3eec217f",
+      "type": "File",
+      "value": "/srv/hospital-data/HOW_TO_DECRYPT.txt",
+      "evidence_ids": [
+        "EV-DC9C95E8D3C1"
+      ]
+    },
+    {
+      "id": "file:7c21d5ac16afcf",
+      "type": "File",
+      "value": "/srv/backups/pacs-nightly",
+      "evidence_ids": [
+        "EV-724A38D40F21"
+      ]
+    },
+    {
+      "id": "file:92925f182e9113",
+      "type": "File",
+      "value": "/srv/hospital-data/patient-4821/study.dcm.locked",
+      "evidence_ids": [
+        "EV-CFF8A027ECDC"
+      ]
+    },
+    {
+      "id": "file:941248850cc869",
+      "type": "File",
+      "value": "/usr/local/bin/pacs-crypt",
+      "evidence_ids": [
+        "EV-7317155270DF"
+      ]
+    },
+    {
+      "id": "file:a5c0c7b789f1da",
+      "type": "File",
+      "value": "/srv/hospital-data/patient-5190/series-3.dcm.locked",
+      "evidence_ids": [
+        "EV-F8039F664711"
+      ]
+    },
+    {
+      "id": "file:b9fca9b8728b4a",
+      "type": "File",
+      "value": "vg0/pacs-snap",
+      "evidence_ids": [
+        "EV-2410FC167D2E"
+      ]
+    },
+    {
+      "id": "process:3342f63fbeda0f",
+      "type": "Process",
+      "value": "pacs-crypt",
+      "evidence_ids": [
+        "EV-CFF8A027ECDC",
+        "EV-DC9C95E8D3C1",
+        "EV-F8039F664711"
+      ]
+    },
+    {
+      "id": "service:2c26ea43d3a52f",
+      "type": "Service",
+      "value": "pacs-archive.service",
+      "evidence_ids": [
+        "EV-D003F272BB13"
+      ]
+    }
+  ],
+  "policy_alerts": [
+    {
+      "event_id": "event:aec7a4ad1c1807",
+      "type": "prompt_injection",
+      "decision": "blocked_as_untrusted_evidence",
+      "evidence_ids": [
+        "EV-CC92D10D158E"
+      ]
+    }
+  ],
+  "unknowns": [
+    "The origin and owner of the unauthorized SSH key are not proven",
+    "A blocked outbound connection does not prove successful exfiltration",
+    "The collected evidence does not prove whether other hosts were affected"
+  ],
+  "remediation": [
+    {
+      "phase": "containment",
+      "action": "Keep the affected host isolated from routed networks",
+      "rationale": "Limit further command-and-control or exfiltration attempts",
+      "modifies_system": false,
+      "requires_human_approval": false,
+      "evidence_ids": [
+        "EV-016664BC14DA",
+        "EV-2410FC167D2E",
+        "EV-724A38D40F21",
+        "EV-B1225A971AC9",
+        "EV-CFF8A027ECDC",
+        "EV-DC9C95E8D3C1",
+        "EV-F8039F664711"
+      ]
+    },
+    {
+      "phase": "evidence_preservation",
+      "action": "Create a forensic disk snapshot and preserve the evidence archive",
+      "rationale": "Preserve state before any modifying remediation",
+      "modifies_system": false,
+      "requires_human_approval": false,
+      "evidence_ids": [
+        "EV-016664BC14DA",
+        "EV-2410FC167D2E",
+        "EV-724A38D40F21",
+        "EV-B1225A971AC9",
+        "EV-CFF8A027ECDC",
+        "EV-DC9C95E8D3C1",
+        "EV-F8039F664711"
+      ]
+    },
+    {
+      "phase": "eradication",
+      "action": "Disable the unauthorized account, key, and persistence service",
+      "rationale": "Remove directly observed access and persistence mechanisms",
+      "modifies_system": true,
+      "requires_human_approval": true,
+      "evidence_ids": [
+        "EV-016664BC14DA",
+        "EV-2410FC167D2E",
+        "EV-724A38D40F21",
+        "EV-B1225A971AC9",
+        "EV-CFF8A027ECDC",
+        "EV-DC9C95E8D3C1",
+        "EV-F8039F664711"
+      ]
+    },
+    {
+      "phase": "recovery",
+      "action": "Reimage or restore the server from a verified known-good source",
+      "rationale": "Observed privileged persistence makes in-place trust recovery uncertain",
+      "modifies_system": true,
+      "requires_human_approval": true,
+      "evidence_ids": [
+        "EV-016664BC14DA",
+        "EV-2410FC167D2E",
+        "EV-724A38D40F21",
+        "EV-B1225A971AC9",
+        "EV-CFF8A027ECDC",
+        "EV-DC9C95E8D3C1",
+        "EV-F8039F664711"
+      ]
+    },
+    {
+      "phase": "validation",
+      "action": "Rotate exposed credentials and monitor authentication and egress",
+      "rationale": "Validate that access and exfiltration indicators do not recur",
+      "modifies_system": true,
+      "requires_human_approval": true,
+      "evidence_ids": [
+        "EV-016664BC14DA",
+        "EV-2410FC167D2E",
+        "EV-724A38D40F21",
+        "EV-B1225A971AC9",
+        "EV-CFF8A027ECDC",
+        "EV-DC9C95E8D3C1",
+        "EV-F8039F664711"
+      ]
+    }
+  ],
+  "warnings": []
+}

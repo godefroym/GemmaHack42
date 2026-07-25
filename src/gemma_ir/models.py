@@ -93,9 +93,9 @@ class DeterministicReport(BaseModel):
 class PlannerEnvelope(BaseModel):
     schema_version: int = 1
     case_id: str
-    mode: Literal["llm", "deterministic_fallback"]
+    mode: Literal["llm"]
+    model: str | None = None
     deterministic_report: DeterministicReport
-    llm_analysis: dict[str, Any] | None = None
+    llm_analysis: dict[str, Any]
     tool_trace: list[dict[str, Any]] = Field(default_factory=list)
-    fallback_reason: str | None = None
     policy_enforcements: list[str] = Field(default_factory=list)

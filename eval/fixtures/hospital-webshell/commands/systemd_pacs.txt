@@ -1,0 +1,3 @@
+Unit pacs-health-sync.service could not be found.
+
+[collector] command exited with status 4

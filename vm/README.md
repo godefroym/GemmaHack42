@@ -1,5 +1,26 @@
 # Compromised Linux VM
 
+## Quickest path: one command (Docker, cross-platform)
+
+To reproduce a real compromise without UTM, use Docker (installed on the team's
+Ubuntu and Mac machines). The victim runs real systemd in a disposable
+container, so the service persistence and Service Stop steps are genuine, not
+simulated. Run from the workspace root:
+
+```bash
+./scripts/run-victim-lab.sh ransomware
+```
+
+It builds the victim image, compromises it, collects read-only evidence into
+`cases/`, and analyzes it into `artifacts/hospital-ransomware-vm/`. Pass
+`intrusion` for the first scenario or `webshell` for the public-facing
+application compromise. Destroy the victim with
+`docker rm -f gemma-ir-victim`.
+
+The UTM workflow below stays available for the ARM64 demo appliance.
+
+## UTM appliance (manual)
+
 Recommended local configuration:
 
 - UTM virtual machine
@@ -47,6 +68,52 @@ they refuse to run on an unmarked Linux machine.
 The selected Atomic Red Team definitions are references for the ATT&CK mapping.
 The deterministic scenario script is used for the live demo because it produces
 the same evidence every time and does not download payloads.
+
+## Ransomware-impact scenario
+
+`run-ransomware-scenario.sh` stages a second, independent case on a clean clone:
+the WannaCry-style impact playbook of stopping the PACS service (T1489),
+destroying backups and snapshots (T1490), and encrypting imaging data (T1486).
+Run it instead of `run-scenario.sh`, then collect with the case id:
+
+```bash
+sudo ./run-ransomware-scenario.sh
+sudo ./collect-evidence.sh hospital-ransomware
+```
+
+It is fully synthetic: no real malware runs, nothing is truly encrypted (only
+placeholder `.locked` files are written), and the destructive steps only touch
+the lab directories the script creates (`/srv/hospital-data`, `/srv/backups`).
+The stolen-credential login marker uses `198.51.100.23` (TEST-NET-2). The ground
+truth is written to `/root/gemma-ir-ransomware-ground-truth.json`; treat it the
+same way as the first scenario. `cleanup-scenario.sh` removes both scenarios.
+
+The offline counterpart lives at `eval/fixtures/hospital-ransomware/` and drives
+the tests and dashboard without a VM:
+
+```bash
+./scripts/run-demo.sh eval/fixtures/hospital-ransomware --serve
+```
+
+## Public-facing webshell and confirmed-exfiltration scenario
+
+`run-webshell-scenario.sh` models a third, independent incident:
+
+1. a crafted PACS upload is accepted by the public application (T1190);
+2. an inert webshell marker runs in the `www-data` context (T1505.003);
+3. `www-data` abuses a deliberately unsafe `sudo` rule (T1548.003);
+4. the attacker installs cron persistence (T1053.003);
+5. PACS credentials and synthetic study metadata are collected and staged;
+6. a real HTTP transfer completes to a TEST-NET endpoint confined to the lab.
+
+The receiver emits `proxy/egress.log` as an independent telemetry source, so
+`assess_exfiltration` can require corroboration before returning `confirmed`.
+The webshell file is inert and all transferred records are synthetic.
+
+```bash
+./scripts/run-victim-lab.sh webshell
+./scripts/run-demo.sh eval/fixtures/hospital-webshell --serve
+```
 
 ## Reproducible unattended installation
 
