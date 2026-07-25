@@ -23,16 +23,30 @@ synthetic cases; real hospital or incident data must never be uploaded.
 The purpose-built incident-response suite contains four synthetic cases and 87
 weighted checks. Both models received the same evidence and system policy.
 
-| Configuration | Score | Critical checks |
-| --- | ---: | ---: |
-| Local E4B, Ollama | 54/87 (62.1%) | 3/11 |
-| 31B QAT, vLLM MTP on L40S | 75/87 (86.2%) | 9/11 |
+| Configuration | Precision | Score | Critical checks |
+| --- | --- | ---: | ---: |
+| E4B, Ollama, MacBook | Q4_K_M | 54/87 (62.1%) | 3/11 |
+| 31B QAT, vLLM MTP on L40S | W4A16 | 75/87 (86.2%) | 9/11 |
+| 31B QAT, vLLM on DGX Spark | W4A16 | 76/87 (87.4%) | 9/11 |
+| **26B-A4B, vLLM on DGX Spark** | **bf16** | **79/87 (90.8%)** | **9/11** |
+| 26B-A4B, vLLM on DGX Spark | FP8 online | 76/87 (87.4%) | 8/11 |
 
 The E4B notably treated an instruction embedded in a log as a possible attacker
-action, generalized all six expected MITRE technique IDs, and trusted a file
-timestamp despite a documented clock correction. The 31B improved the aggregate
-score by 24.1 points and correctly handled most critical checks. This is a
-prototype benchmark, not a general claim about model safety.
+action, missed all six expected sub-technique-level MITRE IDs, and trusted a file
+timestamp despite a documented clock correction. This is a prototype benchmark,
+not a general claim about model safety.
+
+Two results are worth stating plainly. **The on-premise Spark matches the cloud
+GPU** — 76/87 against the L40S's 75/87, within run-to-run variation, with no
+evidence leaving the building. And **the 26B-A4B MoE beats the 31B dense model on
+both axes at once**: 2.1x the decode throughput *and* a higher score, at higher
+precision, because the Spark is memory-bandwidth-bound and the MoE reads only its
+~4B active parameters per token. Online FP8 adds another 1.6x but costs one
+critical check, so bf16 is the shipped configuration.
+
+Full methodology, throughput, batching and the four configuration failures we hit
+are in [`eval/SPARK-RESULTS.md`](eval/SPARK-RESULTS.md); raw JSON is committed
+under `eval/results/`.
 
 On the same L40S and 31B checkpoint, one-token MTP speculative decoding raised
 median decode throughput from 35.4 to 62.1 tokens/s (+75.5%). TTFT increased
@@ -55,8 +69,9 @@ The current prototype now implements:
 On the included synthetic hospital fixture, the deterministic path satisfied
 all fixture assertions in 5 ms. The local E4B planner reached its 75-second
 deadline and safely fell back to that deterministic report. The 31B MTP
-planner on an L40S completed in 30.7 seconds, made five allowlisted read-only
-tool calls, produced nine valid evidence citations, recovered all six expected
+planner on an L40S completed in 30.7 seconds after the orchestrator's five
+allowlisted preflight tool calls, produced nine valid evidence citations,
+recovered all six expected
 ATT&CK techniques, recognized the prompt injection, and preserved human
 approval on every modifying action.
 
@@ -182,27 +197,61 @@ uv run python scripts/evaluate-ir-quality.py \
   --output eval/results/quality-local-nvidia.json
 ```
 
-## DGX Spark portability
+## DGX Spark deployment
 
-The deployment claim is deliberately narrow: the exact 31B target and MTP
-assistant revisions used on Hugging Face can be loaded through the same vLLM
-API on Linux ARM64. NVIDIA publishes a Gemma 4 CUDA 13 container for DGX Spark,
-and the selected image is multi-architecture.
+**Measured on a physical DGX Spark on 2026-07-25**, not extrapolated. GB10 Grace
+Blackwell (`sm_121`), 121.7 GB unified memory, arm64, Ubuntu 24.04, driver
+580.126.09, `vllm/vllm-openai:gemma4-cu130` (multi-arch, `linux/arm64` manifest
+confirmed).
 
-On a Spark, authenticate with `hf auth login`, then inspect or launch the pinned
-configuration:
+The shipped configuration:
 
 ```bash
-./scripts/start-dgx-spark-vllm.sh mtp
-./scripts/start-dgx-spark-vllm.sh mtp --launch
+docker run -d --restart unless-stopped --name gemma-ir-vllm --gpus all \
+  --ipc host --shm-size 16g --publish 127.0.0.1:8000:8000 \
+  --env HF_TOKEN="$HF_TOKEN" --env HF_HUB_OFFLINE=1 --env TRANSFORMERS_OFFLINE=1 \
+  --volume "$HOME/.cache/huggingface:/root/.cache/huggingface" \
+  vllm/vllm-openai:gemma4-cu130 google/gemma-4-26B-A4B-it \
+  --revision 4d7ae4984b7db7de8f8457170b3f1a419ee76d52 \
+  --served-model-name gemma4:26b --host 0.0.0.0 --port 8000 \
+  --max-model-len 8192 --gpu-memory-utilization 0.60 \
+  --enable-auto-tool-choice --tool-call-parser gemma4 --reasoning-parser gemma4
 ```
 
-This configuration has been prepared but not measured on a physical Spark.
-Quality should be validated by rerunning the suite above; throughput must not be
-presented as a Spark result until that run exists. NVIDIA documents DGX Spark as
-an ARM64 Grace Blackwell system with 128 GB unified memory and provides an
-[official Gemma 4 vLLM recipe](https://build.nvidia.com/spark/vllm/instructions).
-Short-term bare-metal rentals also exist, but are optional for the hackathon.
+`HF_HUB_OFFLINE=1` is not decoration: it makes the appliance structurally unable
+to contact Hugging Face at startup, which is what "air-gapped" has to mean for
+this product.
+
+Four things that cost real time and are documented in full in
+[`eval/SPARK-RESULTS.md`](eval/SPARK-RESULTS.md):
+
+- **`--gpu-memory-utilization 0.80` fails on a busy Spark.** Unified memory is
+  shared with every other process on the box; 0.60 is the safe default here.
+- **Ollama silently runs on CPU on GB10.** It reports `gpus=1`, starts cleanly,
+  and repacks the whole model into host memory. No error. A 31B at 5.66 tok/s.
+- **MTP speculative decoding does not load** on this image — the pinned assistant
+  checkpoint uses a `gemma4_assistant` architecture the bundled Transformers does
+  not know. The +75% MTP result stands for the L40S only.
+- **Third-party quantized MoE checkpoints do not load** either: NVIDIA's NVFP4 and
+  RedHatAI's FP8-dynamic both ship per-expert tensors where the loader expects
+  Google's fused layout. Use `--quantization fp8` against Google's own bf16
+  checkpoint instead.
+
+NVIDIA's [official Gemma 4 vLLM recipe](https://build.nvidia.com/spark/vllm/instructions)
+documents the platform.
+
+## Terminal demo
+
+A single command walks through a whole run — evidence intake with recomputed
+SHA-256 hashes, the deterministic reconstruction, the planner's real tool calls
+streamed live, and the post-mortem:
+
+```bash
+uv run python scripts/pandar-demo.py
+```
+
+Add `--skip-llm` to run the deterministic layers alone, which needs no model
+endpoint and completes in milliseconds.
 
 ## Local artifacts
 
