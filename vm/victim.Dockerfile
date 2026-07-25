@@ -9,6 +9,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         systemd systemd-sysv jq zstd iproute2 procps findutils util-linux \
+        cron curl python3 sudo \
     && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /etc/gemma-ir-lab \
     && touch /etc/gemma-ir-lab/authorized

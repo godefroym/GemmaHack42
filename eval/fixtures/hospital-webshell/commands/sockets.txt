@@ -1,0 +1,2 @@
+Netid State     Recv-Q Send-Q Local Address:Port Peer Address:Port Process
+tcp   TIME-WAIT 0      0         192.0.2.44:9443   192.0.2.44:40220 timer:(timewait,59sec,0) ino:0 sk:2

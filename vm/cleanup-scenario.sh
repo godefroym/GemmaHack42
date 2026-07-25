@@ -27,6 +27,18 @@ rm -rf /srv/backups /srv/hospital-data/patient-4821 /srv/hospital-data/patient-5
 rm -f /srv/hospital-data/HOW_TO_DECRYPT.txt
 rm -f /root/gemma-ir-ransomware-ground-truth.json
 
+# Webshell scenario artifacts.
+rm -f /var/www/pacs/uploads/.cache.php
+rm -f /etc/sudoers.d/pacs-maintenance
+rm -f /etc/cron.d/pacs-index
+rm -f /usr/local/bin/pacs-index-update
+rm -f /var/tmp/.pacs-root-proof
+rm -rf /var/tmp/.pacs-export /etc/pacs /srv/pacs-db
+rm -rf /var/log/gemma-ir-external
+rm -f /var/log/nginx/access.log
+rm -f /root/gemma-ir-webshell-ground-truth.json
+ip address del 192.0.2.44/32 dev lo 2>/dev/null || true
+
 systemctl daemon-reload
 
 printf "Synthetic scenario artifacts removed. Restore the clean snapshot for a "

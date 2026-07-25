@@ -29,6 +29,13 @@ configured model endpoint fails, exhausts its tool budget or returns an
 ungrounded report, the investigation fails explicitly. Static outputs remain
 available as forensic facts, but are never presented as Gemma's diagnosis.
 
+The reproducible lab covers three distinct incident families:
+
+- SSH account compromise with privileged persistence and blocked exfiltration;
+- ransomware impact with service stop, recovery inhibition and encryption;
+- public PACS exploitation with a webshell, `sudo` escalation, cron persistence
+  and externally corroborated exfiltration.
+
 ```mermaid
 flowchart LR
     A["Compromised Linux VM"] --> B["Trusted read-only collector"]

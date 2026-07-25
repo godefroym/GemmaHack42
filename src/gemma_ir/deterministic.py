@@ -11,6 +11,13 @@ from gemma_ir.graph import GraphBuilder, stable_id
 from gemma_ir.models import DeterministicReport, IncidentGraph, RemediationAction
 
 TECHNIQUES: dict[str, tuple[str, str]] = {
+    "public_app_exploit": ("T1190", "Exploit Public-Facing Application"),
+    "web_shell": ("T1505.003", "Server Software Component: Web Shell"),
+    "sudo_abuse": (
+        "T1548.003",
+        "Abuse Elevation Control Mechanism: Sudo and Sudo Caching",
+    ),
+    "scheduled_task": ("T1053.003", "Scheduled Task/Job: Cron"),
     "account_created": ("T1136.001", "Create Account: Local Account"),
     "ssh_key_added": ("T1098.004", "Account Manipulation: SSH Authorized Keys"),
     "service_created": (
@@ -59,6 +66,9 @@ class Observation:
 TIMESTAMP_RE = re.compile(
     r"(?P<timestamp>\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:[.,]\d+)?(?:Z|[+-]\d{2}:?\d{2})?)"
 )
+NGINX_TIMESTAMP_RE = re.compile(
+    r"\[(?P<timestamp>\d{2}/[A-Za-z]{3}/\d{4}:\d{2}:\d{2}:\d{2}\s+[+-]\d{4})\]"
+)
 AUDIT_TIMESTAMP_RE = re.compile(r"\bmsg=audit\((?P<epoch>\d{10}(?:\.\d+)?):\d+\)")
 IP_RE = r"(?:\d{1,3}\.){3}\d{1,3}"
 
@@ -67,6 +77,12 @@ def timestamp_from_line(text: str) -> str | None:
     match = TIMESTAMP_RE.search(text)
     if match is not None:
         return match.group("timestamp").replace(",", ".")
+    nginx_match = NGINX_TIMESTAMP_RE.search(text)
+    if nginx_match is not None:
+        return datetime.strptime(
+            nginx_match.group("timestamp"),
+            "%d/%b/%Y:%H:%M:%S %z",
+        ).isoformat()
     audit_match = AUDIT_TIMESTAMP_RE.search(text)
     if audit_match is not None:
         return datetime.fromtimestamp(
@@ -322,6 +338,168 @@ class DeterministicAnalyzer:
                 )
             )
 
+        web_exploit_match = re.search(
+            rf"(?P<ip>{IP_RE}).*?\"POST\s+"
+            r"(?P<uri>/\S*(?:upload|import)\S*(?:\.php|shell|cmd)\S*)\s+"
+            r"HTTP/[\d.]+\"\s+2\d\d\b",
+            text,
+            re.IGNORECASE,
+        )
+        if web_exploit_match:
+            ip = web_exploit_match.group("ip")
+            uri = web_exploit_match.group("uri")
+            observations.append(
+                Observation(
+                    "public_app_exploit",
+                    timestamp,
+                    f"Public PACS application accepted a suspicious upload from {ip}",
+                    line,
+                    [
+                        EntityObservation(
+                            "Endpoint",
+                            ip,
+                            "source",
+                            {
+                                "ioc": True,
+                                "role": "source",
+                                "address": ip,
+                            },
+                        ),
+                        EntityObservation(
+                            "Service",
+                            "pacs-web",
+                            "target",
+                            {"uri": uri},
+                        ),
+                    ],
+                    TECHNIQUES["public_app_exploit"],
+                    confidence=0.95,
+                )
+            )
+
+        web_shell_match = re.search(
+            rf"webshell\s+executed\s+path=(?P<path>/\S+)\s+"
+            r"actor=(?P<actor>[a-z_][\w-]*)\s+command=(?P<command>\S+)"
+            rf"(?:\s+source=(?P<ip>{IP_RE}))?",
+            text,
+            re.IGNORECASE,
+        )
+        if web_shell_match:
+            path = web_shell_match.group("path").rstrip(".,")
+            actor = web_shell_match.group("actor")
+            entities = [
+                EntityObservation("Account", actor, "actor"),
+                EntityObservation("File", path, "artifact", {"ioc": True}),
+                EntityObservation(
+                    "Process",
+                    web_shell_match.group("command"),
+                    "target",
+                ),
+            ]
+            if web_shell_match.group("ip"):
+                ip = web_shell_match.group("ip")
+                entities.append(
+                    EntityObservation(
+                        "Endpoint",
+                        ip,
+                        "source",
+                        {
+                            "ioc": True,
+                            "role": "source",
+                            "address": ip,
+                        },
+                    )
+                )
+            observations.append(
+                Observation(
+                    "web_shell",
+                    timestamp,
+                    f"Webshell {path} executed as {actor}",
+                    line,
+                    entities,
+                    TECHNIQUES["web_shell"],
+                    confidence=0.98,
+                )
+            )
+
+        sudo_abuse_match = re.search(
+            r"sudo\s+abuse\s+actor=(?P<actor>[a-z_][\w-]*)\s+"
+            r"binary=(?P<binary>/\S+)\s+elevated_to=(?P<target>[a-z_][\w-]*)",
+            text,
+            re.IGNORECASE,
+        )
+        if sudo_abuse_match:
+            actor = sudo_abuse_match.group("actor")
+            target = sudo_abuse_match.group("target")
+            binary = sudo_abuse_match.group("binary").rstrip(".,")
+            rule_match = re.search(r"\brule=(?P<rule>/\S+)", text)
+            entities = [
+                EntityObservation("Account", actor, "actor"),
+                EntityObservation("Account", target, "target"),
+                EntityObservation("File", binary, "artifact", {"ioc": True}),
+            ]
+            if rule_match:
+                entities.append(
+                    EntityObservation(
+                        "File",
+                        rule_match.group("rule").rstrip(".,"),
+                        "configuration",
+                        {"ioc": True},
+                    )
+                )
+            observations.append(
+                Observation(
+                    "sudo_abuse",
+                    timestamp,
+                    f"{actor} abused {binary} to execute as {target}",
+                    line,
+                    entities,
+                    TECHNIQUES["sudo_abuse"],
+                    confidence=0.98,
+                )
+            )
+
+        cron_match = re.search(
+            r"cron\s+persistence\s+created\s+path=(?P<path>/etc/cron\.d/\S+)"
+            r"(?:\s+actor=(?P<actor>[a-z_][\w-]*))?"
+            r"(?:\s+command=(?P<command>/\S+))?",
+            text,
+            re.IGNORECASE,
+        )
+        if cron_match:
+            path = cron_match.group("path").rstrip(".,")
+            entities = [
+                EntityObservation("File", path, "target", {"ioc": True}),
+            ]
+            if cron_match.group("actor"):
+                entities.append(
+                    EntityObservation(
+                        "Account",
+                        cron_match.group("actor"),
+                        "actor",
+                    )
+                )
+            if cron_match.group("command"):
+                entities.append(
+                    EntityObservation(
+                        "File",
+                        cron_match.group("command").rstrip(".,"),
+                        "artifact",
+                        {"ioc": True},
+                    )
+                )
+            observations.append(
+                Observation(
+                    "scheduled_task",
+                    timestamp,
+                    f"Cron persistence was installed at {path}",
+                    line,
+                    entities,
+                    TECHNIQUES["scheduled_task"],
+                    confidence=0.98,
+                )
+            )
+
         sudo_match = re.search(
             r"usermod\s+-aG\s+sudo\s+(?P<account>[a-z_][\w-]*)",
             text,
@@ -427,8 +605,8 @@ class DeterministicAnalyzer:
             )
 
         exfil_match = re.search(
-            rf"(?P<result>blocked|denied|failed).*?(?:to|destination=)\s*"
-            rf"(?P<ip>{IP_RE})(?::(?P<port>\d+))?",
+            rf"(?P<result>blocked|denied|failed|completed|allowed).*?"
+            rf"(?:to|destination=)\s*(?P<ip>{IP_RE})(?::(?P<port>\d+))?",
             text,
             re.IGNORECASE,
         )
@@ -438,11 +616,13 @@ class DeterministicAnalyzer:
             endpoint = f"{ip}:{port}"
             process_match = re.search(r"(?:from|process=)\s*(?P<process>/\S+|[\w.-]+)", text)
             process = process_match.group("process") if process_match else "curl"
+            result = exfil_match.group("result").lower()
+            outcome = "completed" if result in {"completed", "allowed"} else "was blocked"
             observations.append(
                 Observation(
                     "exfiltration_attempt",
                     timestamp,
-                    f"Outbound transfer attempt to {endpoint} was blocked",
+                    f"Outbound transfer to {endpoint} {outcome}",
                     line,
                     [
                         EntityObservation("Process", process, "actor"),
@@ -455,7 +635,7 @@ class DeterministicAnalyzer:
                                 "role": "destination",
                                 "address": ip,
                                 "port": port,
-                                "outcome": exfil_match.group("result").lower(),
+                                "outcome": result,
                             },
                         ),
                     ],
@@ -767,6 +947,14 @@ class DeterministicAnalyzer:
             relation: tuple[str, str, str] | None = None
             if observation.event_type == "authentication":
                 relation = ("source", "target", "AUTHENTICATED_AS")
+            elif observation.event_type == "public_app_exploit":
+                relation = ("source", "target", "EXPLOITED")
+            elif observation.event_type == "web_shell":
+                relation = ("actor", "artifact", "EXECUTED")
+            elif observation.event_type == "sudo_abuse":
+                relation = ("actor", "target", "ELEVATED_TO")
+            elif observation.event_type == "scheduled_task" and "actor" in roles:
+                relation = ("actor", "target", "CREATED")
             elif observation.event_type == "privilege_change":
                 relation = ("actor", "target", "MEMBER_OF")
             elif observation.event_type == "ssh_key_added":

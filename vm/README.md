@@ -13,7 +13,8 @@ simulated. Run from the workspace root:
 
 It builds the victim image, compromises it, collects read-only evidence into
 `cases/`, and analyzes it into `artifacts/hospital-ransomware-vm/`. Pass
-`intrusion` for the first scenario. Destroy the victim with
+`intrusion` for the first scenario or `webshell` for the public-facing
+application compromise. Destroy the victim with
 `docker rm -f gemma-ir-victim`.
 
 The UTM workflow below stays available for the ARM64 demo appliance.
@@ -92,6 +93,26 @@ the tests and dashboard without a VM:
 
 ```bash
 ./scripts/run-demo.sh eval/fixtures/hospital-ransomware --serve
+```
+
+## Public-facing webshell and confirmed-exfiltration scenario
+
+`run-webshell-scenario.sh` models a third, independent incident:
+
+1. a crafted PACS upload is accepted by the public application (T1190);
+2. an inert webshell marker runs in the `www-data` context (T1505.003);
+3. `www-data` abuses a deliberately unsafe `sudo` rule (T1548.003);
+4. the attacker installs cron persistence (T1053.003);
+5. PACS credentials and synthetic study metadata are collected and staged;
+6. a real HTTP transfer completes to a TEST-NET endpoint confined to the lab.
+
+The receiver emits `proxy/egress.log` as an independent telemetry source, so
+`assess_exfiltration` can require corroboration before returning `confirmed`.
+The webshell file is inert and all transferred records are synthetic.
+
+```bash
+./scripts/run-victim-lab.sh webshell
+./scripts/run-demo.sh eval/fixtures/hospital-webshell --serve
 ```
 
 ## Reproducible unattended installation

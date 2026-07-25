@@ -1,0 +1,379 @@
+{
+  "schema_version": 1,
+  "case_id": "hospital-webshell",
+  "confidence": 0.9842857142857142,
+  "timeline": [
+    {
+      "event_id": "event:901e043b05f4c8",
+      "timestamp": "2026-07-25T13:44:39+00:00",
+      "event_type": "public_app_exploit",
+      "summary": "Public PACS application accepted a suspicious upload from 203.0.113.77",
+      "evidence_ids": [
+        "EV-FB19F5CE1CA3"
+      ],
+      "confidence": 0.95
+    },
+    {
+      "event_id": "event:a47c30700b763e",
+      "timestamp": "2026-07-25T13:44:39.677482+00:00",
+      "event_type": "web_shell",
+      "summary": "Webshell /var/www/pacs/uploads/.cache.php executed as www-data",
+      "evidence_ids": [
+        "EV-C03C6BA51859"
+      ],
+      "confidence": 0.98
+    },
+    {
+      "event_id": "event:0866cabc4a674a",
+      "timestamp": "2026-07-25T13:44:39.685170+00:00",
+      "event_type": "sudo_abuse",
+      "summary": "www-data abused /usr/bin/find to execute as root",
+      "evidence_ids": [
+        "EV-5D4870238B2F"
+      ],
+      "confidence": 0.98
+    },
+    {
+      "event_id": "event:f49c7ddecd2db8",
+      "timestamp": "2026-07-25T13:44:39.689865+00:00",
+      "event_type": "scheduled_task",
+      "summary": "Cron persistence was installed at /etc/cron.d/pacs-index",
+      "evidence_ids": [
+        "EV-0E64AD51A997"
+      ],
+      "confidence": 0.98
+    },
+    {
+      "event_id": "event:50e0252981d435",
+      "timestamp": "2026-07-25T13:44:39.691641+00:00",
+      "event_type": "credential_access",
+      "summary": "pacs-index-update read sensitive file /etc/pacs/app-credentials.env",
+      "evidence_ids": [
+        "EV-5D2A9886E6C1"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "event_id": "event:6a343351d8c4d8",
+      "timestamp": "2026-07-25T13:44:39.694204+00:00",
+      "event_type": "data_staged",
+      "summary": "pacs-index-update staged data in /var/tmp/.pacs-export/pacs-study-index.tar.gz",
+      "evidence_ids": [
+        "EV-88C70023E1BF"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "event_id": "event:bf823f2e199863",
+      "timestamp": "2026-07-25T13:44:39.812710+00:00",
+      "event_type": "exfiltration_attempt",
+      "summary": "Outbound transfer to 192.0.2.44:9443 completed",
+      "evidence_ids": [
+        "EV-524D1E1EE62A"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "event_id": "event:9046adeb9efdef",
+      "timestamp": "2026-07-25T13:44:39.814480+00:00",
+      "event_type": "prompt_injection",
+      "summary": "Untrusted evidence contains an instruction targeting the analyst",
+      "evidence_ids": [
+        "EV-176EFAFF67FF"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "event_id": "event:49f94fa422b876",
+      "timestamp": null,
+      "event_type": "suspicious_file_collected",
+      "summary": "Collected locally installed executable /usr/local/bin/pacs-index-update",
+      "evidence_ids": [
+        "EV-4B6CC4F9F2C3"
+      ],
+      "confidence": 1.0
+    }
+  ],
+  "attack_path": [
+    {
+      "step": 1,
+      "event_id": "event:901e043b05f4c8",
+      "summary": "Public PACS application accepted a suspicious upload from 203.0.113.77",
+      "evidence_ids": [
+        "EV-FB19F5CE1CA3"
+      ]
+    },
+    {
+      "step": 2,
+      "event_id": "event:a47c30700b763e",
+      "summary": "Webshell /var/www/pacs/uploads/.cache.php executed as www-data",
+      "evidence_ids": [
+        "EV-C03C6BA51859"
+      ]
+    },
+    {
+      "step": 3,
+      "event_id": "event:0866cabc4a674a",
+      "summary": "www-data abused /usr/bin/find to execute as root",
+      "evidence_ids": [
+        "EV-5D4870238B2F"
+      ]
+    },
+    {
+      "step": 4,
+      "event_id": "event:f49c7ddecd2db8",
+      "summary": "Cron persistence was installed at /etc/cron.d/pacs-index",
+      "evidence_ids": [
+        "EV-0E64AD51A997"
+      ]
+    },
+    {
+      "step": 5,
+      "event_id": "event:50e0252981d435",
+      "summary": "pacs-index-update read sensitive file /etc/pacs/app-credentials.env",
+      "evidence_ids": [
+        "EV-5D2A9886E6C1"
+      ]
+    },
+    {
+      "step": 6,
+      "event_id": "event:6a343351d8c4d8",
+      "summary": "pacs-index-update staged data in /var/tmp/.pacs-export/pacs-study-index.tar.gz",
+      "evidence_ids": [
+        "EV-88C70023E1BF"
+      ]
+    },
+    {
+      "step": 7,
+      "event_id": "event:bf823f2e199863",
+      "summary": "Outbound transfer to 192.0.2.44:9443 completed",
+      "evidence_ids": [
+        "EV-524D1E1EE62A"
+      ]
+    }
+  ],
+  "techniques": [
+    {
+      "technique_id": "T1005",
+      "name": "Data from Local System",
+      "evidence_ids": [
+        "EV-88C70023E1BF"
+      ],
+      "confidence": 0.95
+    },
+    {
+      "technique_id": "T1048.003",
+      "name": "Exfiltration Over Alternative Protocol: Exfiltration Over Unencrypted Non-C2 Protocol",
+      "evidence_ids": [
+        "EV-524D1E1EE62A"
+      ],
+      "confidence": 0.95
+    },
+    {
+      "technique_id": "T1053.003",
+      "name": "Scheduled Task/Job: Cron",
+      "evidence_ids": [
+        "EV-0E64AD51A997"
+      ],
+      "confidence": 0.95
+    },
+    {
+      "technique_id": "T1190",
+      "name": "Exploit Public-Facing Application",
+      "evidence_ids": [
+        "EV-FB19F5CE1CA3"
+      ],
+      "confidence": 0.95
+    },
+    {
+      "technique_id": "T1505.003",
+      "name": "Server Software Component: Web Shell",
+      "evidence_ids": [
+        "EV-C03C6BA51859"
+      ],
+      "confidence": 0.95
+    },
+    {
+      "technique_id": "T1548.003",
+      "name": "Abuse Elevation Control Mechanism: Sudo and Sudo Caching",
+      "evidence_ids": [
+        "EV-5D4870238B2F"
+      ],
+      "confidence": 0.95
+    },
+    {
+      "technique_id": "T1552.001",
+      "name": "Unsecured Credentials: Credentials In Files",
+      "evidence_ids": [
+        "EV-5D2A9886E6C1"
+      ],
+      "confidence": 0.95
+    }
+  ],
+  "iocs": [
+    {
+      "id": "endpoint:0c25434b09c620",
+      "type": "Endpoint",
+      "value": "203.0.113.77",
+      "evidence_ids": [
+        "EV-C03C6BA51859",
+        "EV-FB19F5CE1CA3"
+      ]
+    },
+    {
+      "id": "endpoint:a14725bf8022eb",
+      "type": "Endpoint",
+      "value": "192.0.2.44:9443",
+      "evidence_ids": [
+        "EV-524D1E1EE62A"
+      ]
+    },
+    {
+      "id": "file:45b59aa41b4ce8",
+      "type": "File",
+      "value": "/var/www/pacs/uploads/.cache.php",
+      "evidence_ids": [
+        "EV-C03C6BA51859"
+      ]
+    },
+    {
+      "id": "file:59a54833cbe9b7",
+      "type": "File",
+      "value": "/etc/sudoers.d/pacs-maintenance",
+      "evidence_ids": [
+        "EV-5D4870238B2F"
+      ]
+    },
+    {
+      "id": "file:b557fead744e53",
+      "type": "File",
+      "value": "/usr/bin/find",
+      "evidence_ids": [
+        "EV-5D4870238B2F"
+      ]
+    },
+    {
+      "id": "file:b82e5106837507",
+      "type": "File",
+      "value": "/usr/local/bin/pacs-index-update",
+      "evidence_ids": [
+        "EV-0E64AD51A997",
+        "EV-4B6CC4F9F2C3"
+      ]
+    },
+    {
+      "id": "file:cfa68fe54df891",
+      "type": "File",
+      "value": "/etc/cron.d/pacs-index",
+      "evidence_ids": [
+        "EV-0E64AD51A997"
+      ]
+    },
+    {
+      "id": "file:f382ed7b11e202",
+      "type": "File",
+      "value": "/var/tmp/.pacs-export/pacs-study-index.tar.gz",
+      "evidence_ids": [
+        "EV-88C70023E1BF"
+      ]
+    }
+  ],
+  "policy_alerts": [
+    {
+      "event_id": "event:9046adeb9efdef",
+      "type": "prompt_injection",
+      "decision": "blocked_as_untrusted_evidence",
+      "evidence_ids": [
+        "EV-176EFAFF67FF"
+      ]
+    }
+  ],
+  "unknowns": [
+    "The origin and owner of the unauthorized SSH key are not proven",
+    "A blocked outbound connection does not prove successful exfiltration",
+    "The collected evidence does not prove whether other hosts were affected"
+  ],
+  "remediation": [
+    {
+      "phase": "containment",
+      "action": "Keep the affected host isolated from routed networks",
+      "rationale": "Limit further command-and-control or exfiltration attempts",
+      "modifies_system": false,
+      "requires_human_approval": false,
+      "evidence_ids": [
+        "EV-0E64AD51A997",
+        "EV-524D1E1EE62A",
+        "EV-5D2A9886E6C1",
+        "EV-5D4870238B2F",
+        "EV-88C70023E1BF",
+        "EV-C03C6BA51859",
+        "EV-FB19F5CE1CA3"
+      ]
+    },
+    {
+      "phase": "evidence_preservation",
+      "action": "Create a forensic disk snapshot and preserve the evidence archive",
+      "rationale": "Preserve state before any modifying remediation",
+      "modifies_system": false,
+      "requires_human_approval": false,
+      "evidence_ids": [
+        "EV-0E64AD51A997",
+        "EV-524D1E1EE62A",
+        "EV-5D2A9886E6C1",
+        "EV-5D4870238B2F",
+        "EV-88C70023E1BF",
+        "EV-C03C6BA51859",
+        "EV-FB19F5CE1CA3"
+      ]
+    },
+    {
+      "phase": "eradication",
+      "action": "Disable the unauthorized account, key, and persistence service",
+      "rationale": "Remove directly observed access and persistence mechanisms",
+      "modifies_system": true,
+      "requires_human_approval": true,
+      "evidence_ids": [
+        "EV-0E64AD51A997",
+        "EV-524D1E1EE62A",
+        "EV-5D2A9886E6C1",
+        "EV-5D4870238B2F",
+        "EV-88C70023E1BF",
+        "EV-C03C6BA51859",
+        "EV-FB19F5CE1CA3"
+      ]
+    },
+    {
+      "phase": "recovery",
+      "action": "Reimage or restore the server from a verified known-good source",
+      "rationale": "Observed privileged persistence makes in-place trust recovery uncertain",
+      "modifies_system": true,
+      "requires_human_approval": true,
+      "evidence_ids": [
+        "EV-0E64AD51A997",
+        "EV-524D1E1EE62A",
+        "EV-5D2A9886E6C1",
+        "EV-5D4870238B2F",
+        "EV-88C70023E1BF",
+        "EV-C03C6BA51859",
+        "EV-FB19F5CE1CA3"
+      ]
+    },
+    {
+      "phase": "validation",
+      "action": "Rotate exposed credentials and monitor authentication and egress",
+      "rationale": "Validate that access and exfiltration indicators do not recur",
+      "modifies_system": true,
+      "requires_human_approval": true,
+      "evidence_ids": [
+        "EV-0E64AD51A997",
+        "EV-524D1E1EE62A",
+        "EV-5D2A9886E6C1",
+        "EV-5D4870238B2F",
+        "EV-88C70023E1BF",
+        "EV-C03C6BA51859",
+        "EV-FB19F5CE1CA3"
+      ]
+    }
+  ],
+  "warnings": []
+}

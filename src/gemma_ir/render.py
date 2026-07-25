@@ -13,6 +13,10 @@ from gemma_ir.deterministic import build_deterministic_report
 from gemma_ir.models import IncidentGraph
 
 EVENT_COLORS = {
+    "public_app_exploit": "#4dabf7",
+    "web_shell": "#9775fa",
+    "sudo_abuse": "#da77f2",
+    "scheduled_task": "#ff8787",
     "account_created": "#ffb454",
     "ssh_key_added": "#ff9f43",
     "authentication": "#6ea8fe",

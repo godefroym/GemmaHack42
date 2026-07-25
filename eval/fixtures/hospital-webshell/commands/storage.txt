@@ -1,0 +1,4 @@
+ls: cannot access '/srv/hospital-data': No such file or directory
+ls: cannot access '/srv/backups': No such file or directory
+
+[collector] command exited with status 2

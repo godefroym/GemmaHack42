@@ -8,7 +8,7 @@ set -euo pipefail
 # for the native Windows PowerShell equivalent.
 #
 # Usage:
-#   ./scripts/run-victim-lab.sh [ransomware|intrusion] [container-name]
+#   ./scripts/run-victim-lab.sh [ransomware|intrusion|webshell] [container-name]
 
 scenario="${1:-ransomware}"
 container="${2:-gemma-ir-victim}"
@@ -25,8 +25,13 @@ case "${scenario}" in
     scenario_script="run-scenario.sh"
     case_id="hospital-demo"
     ;;
+  webshell|web)
+    scenario_script="run-webshell-scenario.sh"
+    case_id="hospital-webshell"
+    ;;
   *)
-    printf "Unknown scenario '%s'. Use 'ransomware' or 'intrusion'.\n" "${scenario}" >&2
+    printf "Unknown scenario '%s'. Use 'ransomware', 'intrusion', or 'webshell'.\n" \
+      "${scenario}" >&2
     exit 1
     ;;
 esac

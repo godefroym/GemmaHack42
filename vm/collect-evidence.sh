@@ -27,7 +27,8 @@ trap cleanup EXIT
 install -d -m 0700 \
   "${evidence_dir}/commands" \
   "${evidence_dir}/files/etc/systemd/system" \
-  "${evidence_dir}/files/var/log"
+  "${evidence_dir}/files/var/log" \
+  "${evidence_dir}/proxy"
 
 capture() {
   local output_name="$1"
@@ -75,6 +76,12 @@ for source_path in \
   /usr/local/bin/pacs-health-sync \
   /etc/systemd/system/pacs-archive.service \
   /usr/local/bin/pacs-crypt \
+  /var/www/pacs/uploads/.cache.php \
+  /etc/sudoers.d/pacs-maintenance \
+  /etc/cron.d/pacs-index \
+  /usr/local/bin/pacs-index-update \
+  /etc/pacs/app-credentials.env \
+  /var/log/nginx/access.log \
   /srv/hospital-data/HOW_TO_DECRYPT.txt \
   /var/log/auth.log \
   /var/log/audit/audit.log; do
@@ -84,6 +91,14 @@ for source_path in \
     cp --preserve=mode,timestamps "${source_path}" "${destination}"
   fi
 done
+
+# External-style telemetry is kept outside files/ so scope and exfiltration
+# tools can distinguish it from host-local logs.
+if [[ -f /var/log/gemma-ir-external/proxy.log ]]; then
+  cp --preserve=mode,timestamps \
+    /var/log/gemma-ir-external/proxy.log \
+    "${evidence_dir}/proxy/egress.log"
+fi
 
 jq -n \
   --arg case_id "${case_id}" \
