@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import KineticGrid from "@/components/originkit/kinetic-grid";
 import Typewriter from "@/components/originkit/typewriter";
@@ -8,7 +9,7 @@ import ShinyPill from "@/components/originkit/shiny-pill";
 import SwipeStack from "@/components/originkit/swipe-stack";
 import { EvidenceCard } from "./evidence-card";
 import { EASE, Emblem, RadarScatter } from "./kit";
-import { EVIDENCE, HERO, LINKS } from "@/lib/content";
+import { EVIDENCE, HERO } from "@/lib/content";
 
 // StickerPeel is WebGL (three.js) — client-only, no SSR.
 const StickerPeel = dynamic(
@@ -115,23 +116,19 @@ export function Hero() {
             transition={{ duration: 0.7, ease: EASE, delay: 0.6 }}
             className="pointer-events-auto mt-10 flex flex-wrap items-center gap-4"
           >
-            <a
-              href={LINKS.kaggle}
-              target="_blank"
-              rel="noreferrer"
+            <Link
+              href="/presentation"
               className="inline-flex h-12 items-center gap-3 rounded-md bg-ink px-6 text-sm font-medium tracking-wide text-paper transition-colors hover:bg-accent"
             >
               <Emblem size={18} />
-              Read the writeup
-            </a>
-            <a
-              href={LINKS.repo}
-              target="_blank"
-              rel="noreferrer"
+              Open presentation
+            </Link>
+            <Link
+              href="/demo"
               className="inline-flex h-12 items-center rounded-md border border-ink/15 px-5 text-sm font-medium tracking-wide text-ink transition-colors hover:border-ink hover:bg-white"
             >
-              GitHub repo
-            </a>
+              Live dashboard
+            </Link>
           </motion.div>
 
           <motion.p

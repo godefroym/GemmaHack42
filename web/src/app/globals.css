@@ -107,6 +107,21 @@ body {
   animation: pandar-blink 1.4s steps(1, end) infinite;
 }
 
+@keyframes replay-countdown {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.replay-countdown {
+  animation-name: replay-countdown;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

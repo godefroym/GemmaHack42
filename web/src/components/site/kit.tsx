@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useInView } from "framer-motion";
-import { useRef, useSyncExternalStore, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 export const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -113,8 +113,6 @@ const SCATTER_COLORS = [
   "var(--sev-5)",
 ];
 
-const subscribeToMountState = () => () => {};
-
 export function RadarScatter({
   corner,
   seed = 7,
@@ -128,11 +126,11 @@ export function RadarScatter({
 }) {
   // Decorative only — mount-gated so the seeded layout is never part of the
   // server-rendered HTML that React has to reconcile.
-  const mounted = useSyncExternalStore(
-    subscribeToMountState,
-    () => true,
-    () => false,
-  );
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setMounted(true), 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   const rand = mulberry32(seed);
   const blips = Array.from({ length: count }, (_, i) => {
@@ -224,7 +222,7 @@ export function SectionHead({
   dark?: boolean;
 }) {
   return (
-    <Reveal>
+    <div>
       <p className="meta flex items-center gap-2.5">
         <span className="text-accent">{index}</span>
         <span className={dark ? "text-white/45" : undefined}>{kicker}</span>
@@ -237,7 +235,7 @@ export function SectionHead({
         {title}
       </h2>
       {children}
-    </Reveal>
+    </div>
   );
 }
 
