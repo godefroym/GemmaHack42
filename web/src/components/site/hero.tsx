@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import KineticGrid from "@/components/originkit/kinetic-grid";
 import Typewriter from "@/components/originkit/typewriter";
@@ -115,15 +116,13 @@ export function Hero() {
             transition={{ duration: 0.7, ease: EASE, delay: 0.6 }}
             className="pointer-events-auto mt-10 flex flex-wrap items-center gap-4"
           >
-            <a
-              href={LINKS.kaggle}
-              target="_blank"
-              rel="noreferrer"
+            <Link
+              href="/demo"
               className="inline-flex h-12 items-center gap-3 rounded-md bg-ink px-6 text-sm font-medium tracking-wide text-paper transition-colors hover:bg-accent"
             >
               <Emblem size={18} />
-              Read the writeup
-            </a>
+              Try demo
+            </Link>
             <a
               href={LINKS.repo}
               target="_blank"
