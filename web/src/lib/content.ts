@@ -21,7 +21,7 @@ export const META = {
 } as const;
 
 export const HERO = {
-  h1a: "Your crime scene",
+  h1a: "The breach investigation",
   h1b: "never leaves the building.",
   typed: [
     "verifies every hash.",
