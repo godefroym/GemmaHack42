@@ -19,6 +19,8 @@ cases/*
 eval/results/*
 !cases/.gitkeep
 !eval/results/.gitkeep
+# Published benchmark artifacts: the NVIDIA challenge requires reproducible numbers.
+!eval/results/*.json
 
 # Downloaded third-party test definitions
 third_party/atomic-red-team/

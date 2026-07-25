@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-07-25T11:41:38.011689+00:00",
+  "label": "dgx-spark-gb10-vllm-bf16-26b-a4b-specialist-parallelism",
+  "base_url": "http://127.0.0.1:8010/v1",
+  "model": "gemma4:26b",
+  "max_tokens": 1024,
+  "case_count": 4,
+  "rounds": [
+    {
+      "round": 1,
+      "sequential": {
+        "wall_seconds": 80.41939837508835,
+        "cases": [
+          {
+            "case_id": "reconstruction",
+            "seconds": 15.704110374907032,
+            "completion_tokens": 365
+          },
+          {
+            "case_id": "mitre_mapping",
+            "seconds": 16.95416483306326,
+            "completion_tokens": 402
+          },
+          {
+            "case_id": "clock_conflict",
+            "seconds": 16.19547150004655,
+            "completion_tokens": 383
+          },
+          {
+            "case_id": "remediation",
+            "seconds": 31.56557020917535,
+            "completion_tokens": 622
+          }
+        ]
+      },
+      "concurrent": {
+        "wall_seconds": 46.66018620901741,
+        "cases": [
+          {
+            "case_id": "reconstruction",
+            "seconds": 31.136086207814515,
+            "completion_tokens": 348
+          },
+          {
+            "case_id": "mitre_mapping",
+            "seconds": 32.46609550016001,
+            "completion_tokens": 402
+          },
+          {
+            "case_id": "clock_conflict",
+            "seconds": 36.62103741616011,
+            "completion_tokens": 486
+          },
+          {
+            "case_id": "remediation",
+            "seconds": 46.65148395905271,
+            "completion_tokens": 725
+          }
+        ]
+      },
+      "speedup": 1.7235121611997926
+    },
+    {
+      "round": 2,
+      "sequential": {
+        "wall_seconds": 78.977612165967,
+        "cases": [
+          {
+            "case_id": "reconstruction",
+            "seconds": 16.695183374918997,
+            "completion_tokens": 365
+          },
+          {
+            "case_id": "mitre_mapping",
+            "seconds": 16.91769479191862,
+            "completion_tokens": 402
+          },
+          {
+            "case_id": "clock_conflict",
+            "seconds": 17.520826125051826,
+            "completion_tokens": 416
+          },
+          {
+            "case_id": "remediation",
+            "seconds": 27.843860249966383,
+            "completion_tokens": 622
+          }
+        ]
+      },
+      "concurrent": {
+        "wall_seconds": 38.9931732499972,
+        "cases": [
+          {
+            "case_id": "reconstruction",
+            "seconds": 23.428796082967892,
+            "completion_tokens": 371
+          },
+          {
+            "case_id": "mitre_mapping",
+            "seconds": 25.64465224999003,
+            "completion_tokens": 402
+          },
+          {
+            "case_id": "clock_conflict",
+            "seconds": 26.425417499849573,
+            "completion_tokens": 420
+          },
+          {
+            "case_id": "remediation",
+            "seconds": 38.98381570796482,
+            "completion_tokens": 717
+          }
+        ]
+      },
+      "speedup": 2.0254215182646793
+    }
+  ],
+  "best_speedup": 2.0254215182646793
+}
