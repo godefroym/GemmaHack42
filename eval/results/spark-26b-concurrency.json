@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-07-25T11:33:37.845195+00:00",
+  "label": "dgx-spark-gb10-vllm-bf16-26b-a4b-batching",
+  "base_url": "http://127.0.0.1:8010/v1",
+  "model": "gemma4:26b",
+  "max_tokens": 512,
+  "levels": [
+    {
+      "concurrency": 1,
+      "requests": 1,
+      "wall_seconds": 21.61630666698329,
+      "total_completion_tokens": 512,
+      "aggregate_tokens_per_second": 23.68582236955529,
+      "per_stream_tokens_per_second": 23.68582236955529,
+      "median_ttft_seconds": 0.22468150011263788,
+      "max_ttft_seconds": 0.22468150011263788
+    },
+    {
+      "concurrency": 2,
+      "requests": 2,
+      "wall_seconds": 23.629497583955526,
+      "total_completion_tokens": 1024,
+      "aggregate_tokens_per_second": 43.335665363249106,
+      "per_stream_tokens_per_second": 21.667832681624553,
+      "median_ttft_seconds": 0.2872922915266827,
+      "max_ttft_seconds": 0.2877106659580022
+    },
+    {
+      "concurrency": 4,
+      "requests": 4,
+      "wall_seconds": 31.53603179194033,
+      "total_completion_tokens": 1791,
+      "aggregate_tokens_per_second": 56.79218018982738,
+      "per_stream_tokens_per_second": 14.198045047456844,
+      "median_ttft_seconds": 0.3667273538885638,
+      "max_ttft_seconds": 0.42018158407881856
+    },
+    {
+      "concurrency": 8,
+      "requests": 8,
+      "wall_seconds": 34.99772408278659,
+      "total_completion_tokens": 3588,
+      "aggregate_tokens_per_second": 102.52095226285687,
+      "per_stream_tokens_per_second": 12.815119032857108,
+      "median_ttft_seconds": 0.46039533347357064,
+      "max_ttft_seconds": 0.465667667100206
+    }
+  ],
+  "speedup_vs_concurrency_1": {
+    "1": 1.0,
+    "2": 1.8296035783393723,
+    "4": 2.397728873573988,
+    "8": 4.328367859189587
+  }
+}
