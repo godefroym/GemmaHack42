@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { SPARK_KPIS, deriveTraceStats } from "./kpis";
-import investigation from "../../../public/demo/llm-investigation.json";
+import investigation from "../../../public/demo/ransomware.json";
 import type { TraceEntry } from "./types";
 
 const trace = investigation.tool_trace as TraceEntry[];
@@ -16,8 +16,8 @@ describe("SPARK_KPIS", () => {
 describe("deriveTraceStats", () => {
   it("counts calls, rounds and blocks from the real trace", () => {
     const s = deriveTraceStats(trace);
-    expect(s.toolCalls).toBe(21);
-    expect(s.rounds).toBe(8); // distinct rounds present: 1..7,9
+    expect(s.toolCalls).toBe(19);
+    expect(s.rounds).toBe(6); // distinct rounds present: 1..6
     expect(s.blocked).toBe(0);
     expect(s.distinctTools).toBeGreaterThan(5);
   });

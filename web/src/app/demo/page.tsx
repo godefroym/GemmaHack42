@@ -1,54 +1,78 @@
 "use client";
 
 import { useMemo } from "react";
+import { useReducedMotion } from "framer-motion";
 import { Topbar } from "@/components/site/topbar";
-import { useDemoData } from "@/components/demo/use-demo-data";
-import { useReplay } from "@/components/demo/use-replay";
-import { AttackGraph } from "@/components/demo/attack-graph";
-import { SandboxTrace } from "@/components/demo/sandbox-trace";
+import { useInvestigation } from "@/components/demo/use-investigation";
+import { useAutoLoop } from "@/components/demo/use-auto-loop";
+import { KillChain } from "@/components/demo/kill-chain";
+import { Terminal } from "@/components/demo/terminal";
 import { KpiBar } from "@/components/demo/kpi-bar";
-import { ReportPanel } from "@/components/demo/report-panel";
+import { CaseBrief } from "@/components/demo/case-brief";
 import { deriveTraceStats } from "@/lib/demo/kpis";
+import { buildKillChain } from "@/lib/demo/kill-chain";
+import { CASE, MODEL } from "@/lib/demo/scenarios";
 
 export default function DemoPage() {
-  const { graph, investigation, loading, error } = useDemoData();
+  const reduced = useReducedMotion();
+  const { investigation, loading, error } = useInvestigation(CASE.json);
+
   const trace = investigation?.tool_trace ?? [];
-  const { cursor, playing, dispatch } = useReplay(trace.length);
+  const steps = useMemo(
+    () => (investigation ? buildKillChain(investigation.deterministic_report) : []),
+    [investigation],
+  );
+
+  // Two independent loops: the kill chain rebuilds step by step, the terminal
+  // replays Gemma's tool calls.
+  const stepCursor = useAutoLoop(steps.length, { enabled: !reduced, stepMs: 1000, holdEndMs: 2600 });
+  const traceCursor = useAutoLoop(trace.length, { enabled: !reduced });
 
   const stats = useMemo(() => deriveTraceStats(trace), [trace]);
-
-  const activeEvidenceIds = useMemo(() => {
-    const ids = new Set<string>();
-    if (!graph || trace.length === 0) return ids;
-    // tool_trace has no per-action evidence_ids, so we drive the graph highlight by replay progress: reveal nodes proportionally as the cursor advances.
-    const revealCount = Math.ceil((cursor / trace.length) * graph.nodes.length);
-    graph.nodes.slice(0, revealCount).forEach((n) => n.evidence_ids.forEach((id) => ids.add(id)));
-    return ids;
-  }, [graph, trace.length, cursor]);
+  const injectionBlocked = (investigation?.deterministic_report.policy_alerts ?? []).some(
+    (a) => a.type === "prompt_injection",
+  );
 
   return (
     <>
       <Topbar />
-      <main className="mx-auto w-full max-w-7xl px-4 py-8 md:px-8">
-        {loading && <p className="font-mono text-sm text-muted">Loading demo…</p>}
-        {error && <p className="font-mono text-sm text-accent">{error}</p>}
-        {graph && investigation && (
-          <div className="flex flex-col gap-6">
+      <main className="mx-auto w-full max-w-7xl px-4 py-6 md:px-8">
+        <header className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="text-xl font-medium tracking-tight text-ink">{CASE.label}</h1>
+            <p className="mt-0.5 font-mono text-[11px] text-muted">
+              live incident reconstruction · case {CASE.caseId}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="blink h-1.5 w-1.5 rounded-full bg-accent" />
+            <span className="font-mono text-[11px] text-ink">
+              {MODEL} <span className="text-muted">· DGX Spark GB10</span>
+            </span>
+          </div>
+        </header>
+
+        {error && <p className="mt-6 font-mono text-sm text-accent">{error}</p>}
+        {loading && !investigation && (
+          <p className="mt-6 font-mono text-sm text-muted">Loading investigation…</p>
+        )}
+
+        {investigation && (
+          <div className="mt-5 flex flex-col gap-5">
+            <CaseBrief analysis={investigation.llm_analysis} fallback={CASE.label} />
             <KpiBar stats={stats} />
-            <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
-              <div className="min-h-[560px] rounded-card border border-hairline bg-paper-2">
-                <AttackGraph graph={graph} activeEvidenceIds={activeEvidenceIds} />
-              </div>
-              <div className="min-h-[560px]">
-                <SandboxTrace
+            <div className="grid gap-5 lg:grid-cols-[1.55fr_1fr]">
+              <KillChain steps={steps} cursor={stepCursor} injectionBlocked={injectionBlocked} />
+              <div className="h-[440px] lg:h-auto lg:min-h-[440px]">
+                <Terminal
+                  scenario={CASE}
                   trace={trace}
-                  cursor={cursor}
-                  playing={playing}
-                  onControl={dispatch}
+                  confidence={investigation.llm_analysis.confidence}
+                  cursor={traceCursor}
+                  animate={!reduced}
                 />
               </div>
             </div>
-            <ReportPanel analysis={investigation.llm_analysis} />
           </div>
         )}
       </main>
