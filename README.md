@@ -217,6 +217,50 @@ Historical E4B-versus-31B and NVIDIA throughput measurements are retained in
 [`eval/RESULTS.md`](eval/RESULTS.md), clearly separated from validation of the
 current orchestrator.
 
+## DGX Spark deployment
+
+**Measured on a physical DGX Spark on 2026-07-25**, not extrapolated. GB10 Grace
+Blackwell (`sm_121`), 121.7 GB unified memory, arm64, Ubuntu 24.04, driver
+580.126.09, `vllm/vllm-openai:gemma4-cu130` (multi-arch, `linux/arm64` manifest
+confirmed), `--max-model-len 8192`, `--gpu-memory-utilization 0.60`,
+concurrency 1.
+
+| Machine | Model | Precision | Suite score | Critical | Decode |
+| --- | --- | --- | ---: | ---: | ---: |
+| MacBook, Ollama | Gemma 4 E4B | Q4_K_M | 54/87 (62.1%) | 3/11 | 24.4 tok/s |
+| L40S, vLLM | Gemma 4 31B | W4A16 | 75/87 (86.2%) | 9/11 | 35.4 tok/s |
+| DGX Spark, vLLM | Gemma 4 31B | W4A16 | 76/87 (87.4%) | 9/11 | 11.3 tok/s |
+| **DGX Spark, vLLM** | **Gemma 4 26B-A4B** | **bf16** | **79/87 (90.8%)** | **9/11** | 24.0 tok/s |
+| DGX Spark, vLLM | Gemma 4 26B-A4B | FP8 online | 76/87 (87.4%) | 8/11 | 38.8 tok/s |
+
+Two results are worth stating plainly. **The on-premise appliance matches the
+cloud GPU** — 76/87 against the L40S's 75/87, within run-to-run variation, with no
+evidence leaving the building. And **the 26B-A4B MoE beats the 31B dense model on
+both axes at once**: 2.1x the decode throughput *and* a higher score, at higher
+precision, because the Spark is memory-bandwidth-bound and the MoE reads only its
+~4B active parameters per token. Online FP8 adds another 1.6x but costs one
+critical check, so bf16 is the shipped configuration.
+
+Batching compounds: the 26B goes from 23.7 to 102.5 tok/s aggregate at
+concurrency 8 in bf16, and 176.3 tok/s in FP8, with median TTFT under 0.5 s.
+
+Four configuration failures cost real time and are documented with root causes in
+[`eval/SPARK-RESULTS.md`](eval/SPARK-RESULTS.md):
+
+- **`--gpu-memory-utilization 0.80` fails on a busy Spark.** Unified memory is
+  shared with every other process on the box; 0.60 is the safe default here.
+- **Ollama silently runs on CPU on GB10.** It reports `gpus=1`, starts cleanly,
+  then repacks the whole model into host memory. No error. A 31B at 5.66 tok/s.
+- **MTP speculative decoding does not load** on this image — the pinned assistant
+  uses a `gemma4_assistant` architecture the bundled Transformers does not know.
+  The +75% MTP result stands for the L40S only.
+- **Third-party quantized MoE checkpoints do not load** either: NVIDIA's NVFP4 and
+  RedHatAI's FP8-dynamic both ship per-expert tensors where the loader expects
+  Google's fused layout. Use `--quantization fp8` against Google's own bf16
+  checkpoint instead.
+
+Raw JSON for every number above is committed under `eval/results/`.
+
 ## Hugging Face and NVIDIA development
 
 Hugging Face Jobs can host the 31B checkpoint on an NVIDIA L40S for synthetic
