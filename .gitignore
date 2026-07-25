@@ -22,3 +22,8 @@ eval/results/*
 
 # Downloaded third-party test definitions
 third_party/atomic-red-team/
+
+# Landing page build output
+web/node_modules/
+web/.next/
+web/.vercel
