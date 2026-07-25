@@ -132,6 +132,26 @@ Batching and quantization **compound**: FP8 at concurrency 8 reaches 176.3 tok/s
 aggregate, **7.4x the bf16 single-stream figure** and 15.6x the 31B dense
 single-stream figure.
 
+The 31B dense scales similarly, though its measurement is less clean:
+
+| Concurrency | 31B W4A16 aggregate | Wall |
+| ---: | ---: | ---: |
+| 1 | 7.0 tok/s | 72.9 s |
+| 2 | 19.4 | 52.8 |
+| 4 | 35.0 | 47.8 |
+| 8 | 66.6 | 50.2 |
+
+**Caveat, stated rather than hidden:** the concurrency-1 point of this sweep is
+not trustworthy. Its 72.9 s wall-clock for 512 tokens implies 7.0 tok/s, which
+contradicts the 11.32 tok/s measured for the same configuration by
+`benchmark-api.py`. The 64-token warm-up in `benchmark-concurrency.py` is too
+short to absorb this model's first-request compilation cost, and the falling wall
+times across levels (72.9 to 47.8 s) show warm-up bleeding into the first
+measurement. **Do not quote 66.6/7.0 as a 9.5x speed-up.** The trustworthy
+reading is the shape: aggregate throughput keeps rising through concurrency 8
+while TTFT stays under 0.35 s. The 26B sweeps do not show this artefact because
+the model compiles faster.
+
 This is the single biggest end-to-end optimization available on the Spark and it
 requires no configuration change — only sending more than one request at a time.
 Aggregate throughput scales 4.3x from concurrency 1 to 8 while median TTFT only
@@ -364,7 +384,8 @@ uv run python scripts/evaluate-ir-quality.py --base-url http://127.0.0.1:8010/v1
 
 ## Still open
 
-- Concurrency sweep for the 31B dense (only the 26B was swept).
+- A clean concurrency-1 anchor for the 31B sweep: lengthen the warm-up in
+  `benchmark-concurrency.py` past this model's compilation cost and re-run.
 - MTP on the Spark, blocked on the Transformers version in the pinned image.
 - A precision-matched 31B vs 26B comparison, blocked on the missing W4A16
   checkpoint for 26B-A4B.

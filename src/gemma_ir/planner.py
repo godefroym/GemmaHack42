@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Callable
 from typing import Any
 
 import httpx
@@ -39,8 +40,10 @@ class IRPlanner:
         api_key: str,
         extra_body: dict[str, Any] | None = None,
         max_rounds: int = 2,
+        on_event: Callable[[dict[str, Any]], None] | None = None,
     ) -> None:
         self.graph = graph
+        self.on_event = on_event
         self.registry = ForensicToolRegistry(graph)
         self.client = OpenAI(
             base_url=base_url,
@@ -57,7 +60,17 @@ class IRPlanner:
         self.extra_body = extra_body or {}
         self.max_rounds = max_rounds
 
+    def _emit(self, payload: dict[str, Any]) -> None:
+        """Report progress to an optional observer. Never let it break a run."""
+        if self.on_event is None:
+            return
+        try:
+            self.on_event(payload)
+        except Exception:  # noqa: BLE001 - an observer must not fail the analysis
+            pass
+
     def analyze(self) -> PlannerEnvelope:
+        self._emit({"type": "phase", "phase": "preflight"})
         baseline = build_deterministic_report(self.graph)
         preflight_specs = [
             ("trace_attack_path", {"max_depth": 6}),
@@ -77,16 +90,17 @@ class IRPlanner:
                 entity_paths = result["result"].get("entity_paths", [])
                 result["result"]["entity_paths"] = entity_paths[:3]
             preflight[name] = result
-            trace.append(
-                {
-                    "tool_call_id": f"preflight-{index}",
-                    "name": name,
-                    "arguments": arguments,
-                    "ok": result.get("ok", False),
-                    "blocked": result.get("blocked", False),
-                    "orchestrated": True,
-                }
-            )
+            entry = {
+                "tool_call_id": f"preflight-{index}",
+                "name": name,
+                "arguments": arguments,
+                "ok": result.get("ok", False),
+                "blocked": result.get("blocked", False),
+                "orchestrated": True,
+            }
+            trace.append(entry)
+            self._emit({"type": "tool_call", **entry})
+        self._emit({"type": "phase", "phase": "model_request"})
         messages: list[dict[str, Any]] = [
             {"role": "system", "content": SYSTEM_PROMPT},
             {
