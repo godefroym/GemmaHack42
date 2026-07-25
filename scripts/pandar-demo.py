@@ -9,6 +9,7 @@ streamed through its on_event hook, and the findings come out of the graph.
 from __future__ import annotations
 
 import argparse
+import inspect
 import time
 from pathlib import Path
 
@@ -131,14 +132,23 @@ def main() -> None:
             console.print(f"      [dim]tool[/dim] [bold]{event['name']:<28}[/bold] {mark}")
         beat(args.pace * 0.6)
 
-    planner = IRPlanner(
-        graph,
-        base_url=args.base_url,
-        model=args.model,
-        api_key=args.api_key,
-        on_event=on_event,
-        timeout_seconds=args.timeout,
-    )
+    # The planner grew a richer multi-round loop on the integration branch. Pass
+    # bundle and the progress hook only when this build accepts them, so the demo
+    # keeps working across both signatures.
+    accepted = inspect.signature(IRPlanner.__init__).parameters
+    kwargs: dict[str, object] = {
+        "base_url": args.base_url,
+        "model": args.model,
+        "api_key": args.api_key,
+        "timeout_seconds": args.timeout,
+    }
+    if "bundle" in accepted:
+        kwargs["bundle"] = bundle
+    if "on_event" in accepted:
+        kwargs["on_event"] = on_event
+    else:
+        console.print("      [dim]tool calls stream in the report, not live on this build[/dim]")
+    planner = IRPlanner(graph, **kwargs)
     t1 = time.perf_counter()
     with console.status("[bold]Gemma 4 is reasoning over the incident graph…", spinner="dots"):
         envelope = planner.analyze()
