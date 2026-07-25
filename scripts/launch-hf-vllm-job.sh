@@ -6,6 +6,7 @@ action="${2:-}"
 image_name="${VLLM_IMAGE:-vllm/vllm-openai:nightly}"
 flavor="${HF_JOB_FLAVOR:-l40sx1}"
 timeout="${HF_JOB_TIMEOUT:-90m}"
+max_model_len="${VLLM_MAX_MODEL_LEN:-32768}"
 model_repo="google/gemma-4-31B-it-qat-w4a16-ct"
 assistant_repo="google/gemma-4-31B-it-qat-q4_0-unquantized-assistant"
 model_revision="52f3f65bc7a02d555763bc923bd1d9094898219d"
@@ -30,7 +31,7 @@ job_command=(
   --served-model-name gemma4:31b
   --host 0.0.0.0
   --port 8000
-  --max-model-len 8192
+  --max-model-len "${max_model_len}"
   --gpu-memory-utilization 0.90
   --limit-mm-per-prompt '{"image":0,"audio":0}'
   --enable-auto-tool-choice
@@ -48,8 +49,8 @@ fi
 
 if [[ "${action}" != "--launch" ]]; then
   printf "Dry run only; no paid job was started.\n"
-  printf "Hardware: %s, timeout: %s, mode: %s\n" \
-    "${flavor}" "${timeout}" "${mode}"
+  printf "Hardware: %s, timeout: %s, mode: %s, context: %s\n" \
+    "${flavor}" "${timeout}" "${mode}" "${max_model_len}"
   printf "Authenticate with 'hf auth login', then run:\n"
   printf "  %q" "${job_command[@]}"
   printf "\n"

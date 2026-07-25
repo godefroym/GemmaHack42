@@ -3,11 +3,15 @@ from __future__ import annotations
 from fastapi.testclient import TestClient
 
 from gemma_ir.api import create_app
+from gemma_ir.bundle import EvidenceBundle
 from gemma_ir.models import IncidentGraph
 
 
-def test_dashboard_and_read_only_api(incident_graph: IncidentGraph) -> None:
-    client = TestClient(create_app(incident_graph))
+def test_dashboard_and_read_only_api(
+    incident_graph: IncidentGraph,
+    evidence_bundle: EvidenceBundle,
+) -> None:
+    client = TestClient(create_app(incident_graph, evidence_bundle))
     assert client.get("/health").json()["integrity"]["status"] == "verified"
     assert client.get("/").status_code == 200
     assert "Attack graph" in client.get("/").text
@@ -18,3 +22,10 @@ def test_dashboard_and_read_only_api(incident_graph: IncidentGraph) -> None:
     blocked = client.post("/api/tools/delete_evidence", json={})
     assert blocked.status_code == 400
     assert blocked.json()["detail"]["blocked"] is True
+
+    raw_search = client.post(
+        "/api/tools/search_raw_evidence",
+        json={"terms": ["backup-admin"], "limit": 2},
+    )
+    assert raw_search.status_code == 200
+    assert raw_search.json()["result"]["count"] == 2

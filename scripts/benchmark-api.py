@@ -15,9 +15,9 @@ from openai import OpenAI
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Benchmark an OpenAI-compatible Gemma endpoint.")
-    parser.add_argument("--base-url", default="http://127.0.0.1:11434/v1")
-    parser.add_argument("--model", default="gemma4:e4b")
-    parser.add_argument("--api-key", default=os.getenv("MODEL_API_KEY", "local"))
+    parser.add_argument("--base-url", default=os.getenv("MODEL_API_BASE"))
+    parser.add_argument("--model", default=os.getenv("MODEL_NAME"))
+    parser.add_argument("--api-key", default=os.getenv("MODEL_API_KEY", "EMPTY"))
     parser.add_argument(
         "--prompts",
         type=Path,
@@ -27,7 +27,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-tokens", type=int, default=512)
     parser.add_argument("--label", default="unlabelled")
     parser.add_argument("--output", type=Path)
-    return parser.parse_args()
+    args = parser.parse_args()
+    if not args.base_url or not args.model:
+        parser.error(
+            "--base-url and --model are required, or set MODEL_API_BASE and MODEL_NAME"
+        )
+    return args
 
 
 def percentile(values: list[float], quantile: float) -> float:

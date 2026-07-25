@@ -1,7 +1,42 @@
 # Incident-response inference results
 
+## Current endpoint-driven real-VM run
+
+Measured on 2026-07-25 against
+`cases/real-vm/hospital-demo-20260725T054626Z.tar.zst`.
+
+| Configuration | Context | Tools | Citations | IOCs | ATT&CK |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Gemma 4 31B QAT, vLLM MTP, HF L40S | 32,768 | 21 | 9 | 6/6 | 5/6 |
+
+The model selected and called the tools itself. It correctly reconstructed the
+account, SSH key, systemd persistence, data access, staging and failed outbound
+connection; classified exfiltration as `attempted_and_blocked`; cited the
+prompt-injection evidence; and required human approval for every modifying
+action. It omitted `T1552.001`.
+
+The real run also identified two product gaps. Its scope wording should state
+more clearly that hosts outside the collected machine and successful transfers
+remain unknown without external telemetry. Its remediation plan proposed
+deleting the staged archive without first making evidence preservation an
+explicit ordered step.
+
+The endpoint reported 72,970 tokens of KV-cache capacity, 2.23× maximum
+concurrency at 32,768 tokens, and approximately 42.4/45.5 GB GPU memory in use.
+Observed generation during the workflow was roughly 43–46 tokens/s with MTP
+acceptance generally between 90% and 98%. The successful report is retained at
+`artifacts/hf-real-vm/llm-investigation.json`.
+
+## Historical experiments
+
 Measured on 2026-07-24. Generated JSON reports are kept under `eval/results/`
 and are ignored by Git because they contain complete model responses.
+
+> **Historical experiment:** these measurements predate the endpoint-driven
+> orchestrator. They compare model quality and inference configurations, but do
+> not validate the current 16-tool workflow. The old deterministic substitution
+> on LLM failure has been removed; current runs fail explicitly and must be
+> repeated on the final Hugging Face or Brev endpoint.
 
 ## Quality: E4B versus 31B
 
@@ -43,16 +78,16 @@ tool calls, and the final investigation plan.
 | Configuration | Result | Time | Tools | Evidence citations |
 | --- | --- | ---: | ---: | ---: |
 | Deterministic engine only | 100% of fixture assertions | 0.005 s | — | all events sourced |
-| Local E4B, Ollama | 75 s deadline → deterministic fallback | 75.3 s | 5 preflight calls | 11 |
+| Local E4B, Ollama | 75 s deadline → no valid LLM result | 75.3 s | 5 preflight calls | 11 |
 | 31B QAT, vLLM MTP on L40S | grounded LLM plan | 30.7 s | 5 preflight calls | 9 |
 
-The 31B plan recovered all six expected ATT&CK techniques, mentioned five of
+The historical 31B plan recovered all six expected ATT&CK techniques, mentioned five of
 the six required IOC strings, kept the failed transfer as an attempt rather
 than a successful exfiltration, recognized the prompt injection, and marked
 every modifying remediation action as requiring human approval. The local E4B
-did not complete a valid plan within the 75-second budget, so the orchestrator
-returned the deterministic report instead. That is the intended fail-safe
-behavior, not an empty or partially trusted response.
+did not complete a valid plan within the 75-second budget. The then-current
+prototype substituted a deterministic report; that behavior is obsolete and is
+not part of the endpoint-driven workflow.
 
 These timings are end-to-end planner latencies, not pure decode throughput.
 The fixture is synthetic and the 31B endpoint was remote, so they must not be

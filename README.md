@@ -1,217 +1,237 @@
-# Local incident-response hackathon environment
+# Gemma incident-response prototype
 
-This workspace prepares three inference profiles behind the same
-OpenAI-compatible API:
+This project investigates an isolated Linux host with one configured LLM
+endpoint. The forensic workflow is independent from the inference deployment:
+today the endpoint can be hosted on Hugging Face; the same OpenAI-compatible
+contract can later point to Brev, vLLM, or an on-premise NVIDIA appliance.
 
-- Offline demo and fallback: Ollama with `gemma4:e4b`.
-- Development and optimization: Gemma 4 31B QAT on an NVIDIA L40S through
-  Hugging Face Jobs.
-- Intended on-premise deployment: the same 31B checkpoint served by vLLM on a
-  DGX Spark-class machine.
+Real hospital or incident evidence must never be uploaded to a development
+endpoint. Cloud GPUs are only for synthetic hackathon cases. The intended
+deployment runs the same workflow and model inside the organization's trust
+boundary.
 
-The product remains local-first. Cloud GPUs are only a development bench for
-synthetic cases; real hospital or incident data must never be uploaded.
+## What the prototype does
 
-| Backend | Purpose | Model/runtime |
-| --- | --- | --- |
-| Ollama | Offline demo on commodity hardware | `gemma4:e4b` |
-| HF Jobs L40S | 31B quality and NVIDIA optimization bench | vLLM, `gemma4:31b` |
-| DGX Spark-class box | Intended air-gapped/on-premise deployment | vLLM, `gemma4:31b` |
+1. A trusted collector acquires evidence from the isolated victim in read-only
+   mode.
+2. The application verifies SHA-256 provenance and normalizes Linux events.
+3. Static analyzers build candidate facts, IOCs, ATT&CK mappings and a sourced
+   incident graph.
+4. Gemma starts the investigation and chooses among 16 typed, read-only tools.
+5. It reads raw logs and collected system state, tests the candidate attack
+   path, determines the observable scope, assesses exfiltration and proposes
+   remediation.
+6. The application validates citations and safety invariants before accepting
+   the LLM report.
 
-## Measured result
+There is no smaller-model or deterministic diagnosis fallback. If the
+configured model endpoint fails, exhausts its tool budget or returns an
+ungrounded report, the investigation fails explicitly. Static outputs remain
+available as forensic facts, but are never presented as Gemma's diagnosis.
 
-The purpose-built incident-response suite contains four synthetic cases and 87
-weighted checks. Both models received the same evidence and system policy.
+```mermaid
+flowchart LR
+    A["Compromised Linux VM"] --> B["Trusted read-only collector"]
+    B --> C["Immutable evidence bundle"]
+    C --> D["Static analyzers"]
+    C --> E["Raw evidence index"]
+    D --> F["Sourced incident graph"]
+    G["One Gemma endpoint<br/>HF now, Brev/on-prem later"] --> H["LLM orchestrator"]
+    H --> D
+    H --> E
+    H --> F
+    H --> I["Grounded diagnosis, scope and remediation plan"]
+```
 
-| Configuration | Score | Critical checks |
-| --- | ---: | ---: |
-| Local E4B, Ollama | 54/87 (62.1%) | 3/11 |
-| 31B QAT, vLLM MTP on L40S | 75/87 (86.2%) | 9/11 |
+## Forensic tools available to Gemma
 
-The E4B notably treated an instruction embedded in a log as a possible attacker
-action, generalized all six expected MITRE technique IDs, and trusted a file
-timestamp despite a documented clock correction. The 31B improved the aggregate
-score by 24.1 points and correctly handled most critical checks. This is a
-prototype benchmark, not a general claim about model safety.
+Evidence access:
 
-On the same L40S and 31B checkpoint, one-token MTP speculative decoding raised
-median decode throughput from 35.4 to 62.1 tokens/s (+75.5%). TTFT increased
-from 0.43 to 0.72 seconds, which is acceptable for an investigation workflow.
-See [`eval/RESULTS.md`](eval/RESULTS.md) for methodology and caveats.
+- `get_case_overview`
+- `list_artifacts`
+- `search_raw_evidence`
+- `get_evidence_context`
+- `get_evidence`
 
-## End-to-end forensic pipeline
+Classic host investigation:
 
-The current prototype now implements:
+- `query_system_state`
+- `search_events`
+- `get_entity`
+- `trace_attack_path`
+- `list_iocs`
+- `map_attack_techniques`
+- `inspect_policy_alerts`
 
-- SHA-256 verification for a collected directory or `.tar.zst` bundle;
-- deterministic normalization, timeline, IOC and ATT&CK extraction;
-- a sourced incident graph with observed and derived relations;
-- an optional isolated Neo4j mirror plus an always-available JSON fallback;
-- eight typed, read-only forensic tools;
-- a bounded Gemma planner with timeout, invalid-output and tool-loop fallbacks;
-- a policy pass that requires human approval for every modifying action;
-- a local dashboard and a full-pipeline benchmark.
+Decision support:
 
-On the included synthetic hospital fixture, the deterministic path satisfied
-all fixture assertions in 5 ms. The local E4B planner reached its 75-second
-deadline and safely fell back to that deterministic report. The 31B MTP
-planner on an L40S completed in 30.7 seconds, made five allowlisted read-only
-tool calls, produced nine valid evidence citations, recovered all six expected
-ATT&CK techniques, recognized the prompt injection, and preserved human
-approval on every modifying action.
+- `assess_exfiltration`
+- `assess_incident_scope`
+- `get_remediation_constraints`
+- `check_action_policy`
 
-The included fixture follows the same layout as the real VM collector. Prepare
-the entire demonstration with:
+The tools expose collected processes, sockets, routes, accounts, logins,
+services, cron/systemd persistence, audit logs and package inventory.
+They cannot execute a shell, modify the victim or delete evidence. Every excerpt
+returned to the model is labeled as untrusted evidence.
+
+Gemma cannot finish before it has covered case integrity, raw evidence,
+attack-path reconstruction, scope, exfiltration and remediation constraints.
+Material conclusions must cite stable evidence IDs. A claim of confirmed
+exfiltration is rejected unless external telemetry supports it.
+
+See [the architecture document](docs/ARCHITECTURE.md) for the complete tool and
+trust contract.
+
+## Run the analysis
+
+Create the deterministic graph and dashboard:
+
+```bash
+uv sync
+uv run gemma-ir analyze eval/fixtures/hospital-demo \
+  --output-dir artifacts/demo
+```
+
+Configure exactly one OpenAI-compatible model endpoint:
+
+```bash
+export MODEL_API_BASE="https://your-endpoint.example/v1"
+export MODEL_NAME="your-served-gemma-model"
+export MODEL_API_KEY="..."
+```
+
+Run the complete static and LLM-orchestrated investigation:
+
+```bash
+uv run gemma-ir investigate eval/fixtures/hospital-demo \
+  --output-dir artifacts/investigation
+```
+
+Endpoint-specific request options can be passed without coupling the workflow to
+a runtime:
+
+```bash
+uv run gemma-ir investigate eval/fixtures/hospital-demo \
+  --extra-body '{"chat_template_kwargs":{"enable_thinking":false}}'
+```
+
+`gemma-ir plan` remains available when only the LLM report is needed.
+
+Do not commit API keys. `.env` is ignored, but exporting the variables in the
+current shell or using a local secret manager is preferable.
+
+## Inspect or serve a case
+
+Call one tool directly:
+
+```bash
+uv run gemma-ir tool eval/fixtures/hospital-demo search_raw_evidence \
+  --arguments '{"terms":["backup-admin"],"limit":10}'
+```
+
+Build the graph and optionally mirror it to the isolated Neo4j instance:
 
 ```bash
 ./scripts/run-demo.sh
-```
-
-Serve the dashboard at `http://127.0.0.1:8080`:
-
-```bash
 ./scripts/run-demo.sh eval/fixtures/hospital-demo --serve
 ```
 
-The generated graph, report, SVG and HTML live under `artifacts/demo/`. Neo4j
-Browser is bound to `http://127.0.0.1:7475`, with Bolt on `127.0.0.1:7688`.
-The separate Neo4j instance already running for another project is untouched.
+The dashboard is served at `http://127.0.0.1:8080`. Generated graph, report,
+SVG and HTML files live under `artifacts/demo/`. JSON is the canonical graph
+format; Neo4j is an optional read model for exploration, not an inference
+fallback.
 
-To inspect the mirrored case in Neo4j Browser:
+## Current validation
 
-```cypher
-MATCH p=(n:IRNode {case_id: "hospital-demo"})-[r]->(m)
-RETURN p
-LIMIT 100
-```
+The deterministic chain was replayed against evidence collected from the Ubuntu
+24.04 ARM64 UTM victim. It completed in 0.73 seconds with:
 
-Example read-only tool call:
+- verified archive integrity;
+- 8 candidate attack steps;
+- all 6 expected ATT&CK techniques;
+- all 6 required IOCs;
+- 31 graph nodes and 49 edges;
+- one detected prompt-injection attempt in a log.
 
-```bash
-uv run gemma-ir tool eval/fixtures/hospital-demo trace_attack_path \
-  --arguments '{"start_entity":"203.0.113.77","max_depth":8}'
-```
+The real evidence bundle contains 28 collected artifacts and 10,787 searchable
+lines. The exfiltration tool classifies the observed transfer as
+`attempted_and_blocked` and explicitly records that the absence of firewall,
+proxy, Zeek or NetFlow telemetry prevents proving the complete data scope.
 
-Run the LLM planner locally:
+On 2026-07-25 the endpoint-driven workflow completed against the same real-VM
+archive with Gemma 4 31B QAT, vLLM and one-token MTP on a Hugging Face L40S:
 
-```bash
-uv run gemma-ir plan eval/fixtures/hospital-demo \
-  --base-url http://127.0.0.1:11434/v1 \
-  --model gemma4:e4b
-```
+- 21 model-selected tool calls and 9 valid evidence citations;
+- 6/6 required IOCs recovered;
+- 5/6 expected ATT&CK techniques recovered (`T1552.001` was omitted);
+- correct `attempted_and_blocked` exfiltration classification;
+- explicit detection of the prompt-injection evidence;
+- human approval preserved on all five modifying remediation proposals.
 
-Run the deterministic and optional LLM benchmark:
+The accepted report is stored at
+`artifacts/hf-real-vm/llm-investigation.json`. It also exposes useful prototype
+limitations: the scope wording does not emphasize the absence of external
+telemetry enough, and the remediation plan should place forensic preservation
+before deleting the staged archive.
+
+The 32,768-token endpoint measured a 72,970-token GPU KV-cache capacity, or
+2.23 concurrent maximum-length requests. A 65,536-token single-investigation
+profile is therefore feasible on the same L40S; 128k is not with this exact
+model and memory configuration. Observed generation was approximately
+43–46 tokens/s, with MTP acceptance generally between 90% and 98%. GPU memory
+settled around 42.4/45.5 GB.
+
+Run the complete static and optional LLM benchmark:
 
 ```bash
 uv run python scripts/benchmark-ir-pipeline.py
+uv run python scripts/benchmark-ir-pipeline.py \
+  --base-url "$MODEL_API_BASE" \
+  --model "$MODEL_NAME" \
+  --api-key "$MODEL_API_KEY"
 ```
 
-See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the trust boundaries,
-tool allowlist and fallback order.
+Historical E4B-versus-31B and NVIDIA throughput measurements are retained in
+[`eval/RESULTS.md`](eval/RESULTS.md), clearly separated from validation of the
+current orchestrator.
 
-## Installed locally
+## Hugging Face and NVIDIA development
 
-- Docker Desktop
-- Ollama and `gemma4:e4b` Q4_K_M
-- Hugging Face CLI
-- uv and a Python 3.12 project environment
-- llama.cpp
-- Git LFS
-- UTM
-- Skopeo
-- aria2
-- jq
-- ShellCheck
-
-## Quick checks
-
-```bash
-./scripts/check-prerequisites.sh
-./scripts/verify-artifacts.sh
-./scripts/start-local-ollama.sh
-./scripts/test-model-api.sh http://127.0.0.1:11434/v1 gemma4:e4b
-```
-
-To test the hosted fallback after creating an API key in Google AI Studio:
-
-```bash
-export GEMINI_API_KEY="..."
-./scripts/test-gemini-api.sh
-```
-
-Do not put API keys in `.env` files that may be committed or paste them into
-chat. The `.env` path is ignored as an additional safeguard.
-
-## NVIDIA cloud development bench
-
-Hugging Face Jobs is configured for one L40S 48 GB and the vLLM nightly image
-validated against Gemma 4. The helper defaults to a dry run and will not spend
-credits:
+Hugging Face Jobs can host the 31B checkpoint on an NVIDIA L40S for synthetic
+tests. The launch helper defaults to a dry run and does not spend credits:
 
 ```bash
 ./scripts/launch-hf-vllm-job.sh baseline
 ./scripts/launch-hf-vllm-job.sh mtp
 ```
 
-After authenticating locally with `hf auth login`, add `--launch` to actually
-start a job. The model and MTP assistant revisions are pinned in the launcher.
-Always cancel the job after recording the result.
-
-Run the same streamed benchmark against baseline and MTP endpoints:
+After `hf auth login`, add `--launch` only when a paid job is intended. Test any
+served endpoint through the same contract:
 
 ```bash
-uv run python scripts/benchmark-api.py \
-  --base-url http://127.0.0.1:8000/v1 \
-  --model gemma4:31b \
-  --label l40s-mtp \
-  --output eval/results/l40s-mtp.json
-```
+./scripts/test-model-api.sh "$MODEL_API_BASE" "$MODEL_NAME"
 
-For a Hugging Face Job, `hf jobs stats JOB_ID --json` captures GPU utilization
-and memory metrics alongside the latency and throughput report.
-
-Run the incident-response quality suite against any OpenAI-compatible endpoint:
-
-```bash
 uv run python scripts/evaluate-ir-quality.py \
-  --base-url http://127.0.0.1:8000/v1 \
-  --model gemma4:31b \
-  --label local-nvidia-31b \
-  --extra-body '{"chat_template_kwargs":{"enable_thinking":false}}' \
-  --max-tokens 1024 \
-  --output eval/results/quality-local-nvidia.json
+  --base-url "$MODEL_API_BASE" \
+  --model "$MODEL_NAME" \
+  --api-key "$MODEL_API_KEY" \
+  --label hf-gemma \
+  --output eval/results/quality-hf-gemma.json
 ```
 
-## DGX Spark portability
+The previous isolated-throughput experiment measured 35.4 tokens/s for the baseline and
+62.1 tokens/s with one-token MTP on the same 31B checkpoint. Those are L40S
+measurements, not DGX Spark claims.
 
-The deployment claim is deliberately narrow: the exact 31B target and MTP
-assistant revisions used on Hugging Face can be loaded through the same vLLM
-API on Linux ARM64. NVIDIA publishes a Gemma 4 CUDA 13 container for DGX Spark,
-and the selected image is multi-architecture.
-
-On a Spark, authenticate with `hf auth login`, then inspect or launch the pinned
-configuration:
-
-```bash
-./scripts/start-dgx-spark-vllm.sh mtp
-./scripts/start-dgx-spark-vllm.sh mtp --launch
-```
-
-This configuration has been prepared but not measured on a physical Spark.
-Quality should be validated by rerunning the suite above; throughput must not be
-presented as a Spark result until that run exists. NVIDIA documents DGX Spark as
-an ARM64 Grace Blackwell system with 128 GB unified memory and provides an
-[official Gemma 4 vLLM recipe](https://build.nvidia.com/spark/vllm/instructions).
-Short-term bare-metal rentals also exist, but are optional for the hackathon.
-
-## Local artifacts
-
-The Ubuntu VM ISO is stored under `artifacts/` and deliberately ignored by Git.
-Gemma 4 31B and the vLLM image are not duplicated on this Mac. See
-[`artifacts/README.md`](artifacts/README.md) for the optional separate-NVIDIA-
-host workflow.
+The exact model, prompts, tool API and evaluator can be served later on an
+on-premise NVIDIA system. The prepared Spark launcher is documented under
+[`artifacts/README.md`](artifacts/README.md); no physical Spark throughput has
+been measured.
 
 ## Victim VM
 
-Use UTM with the Ubuntu Server ARM64 ISO in `artifacts/ubuntu/`. The preparation
-notes and lab-only scripts live in [`vm/README.md`](vm/README.md).
+Use UTM with the Ubuntu Server ARM64 ISO under `artifacts/ubuntu/`. The
+preparation notes and lab-only scripts are in [`vm/README.md`](vm/README.md).
+The VM team can change the scenario without changing the evidence bundle,
+tool-calling or endpoint contracts.

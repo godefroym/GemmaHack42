@@ -1,21 +1,23 @@
 from __future__ import annotations
 
+import json
 import os
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse, Response
 
+from gemma_ir.bundle import EvidenceBundle
 from gemma_ir.deterministic import build_deterministic_report
 from gemma_ir.models import IncidentGraph
-from gemma_ir.planner import IRPlanner
+from gemma_ir.planner import InvestigationError, IRPlanner
 from gemma_ir.render import render_attack_graph_svg, render_dashboard_html
 from gemma_ir.tools import ForensicToolRegistry
 
 
-def create_app(graph: IncidentGraph) -> FastAPI:
+def create_app(graph: IncidentGraph, bundle: EvidenceBundle) -> FastAPI:
     app = FastAPI(title="Gemma IR", version="0.1.0")
-    tools = ForensicToolRegistry(graph)
+    tools = ForensicToolRegistry(graph, bundle)
     dashboard = render_dashboard_html(graph, render_attack_graph_svg(graph))
 
     @app.get("/", response_class=HTMLResponse)
@@ -58,17 +60,32 @@ def create_app(graph: IncidentGraph) -> FastAPI:
 
     @app.post("/api/plan")
     def create_plan() -> dict[str, Any]:
-        base_url = os.getenv("MODEL_API_BASE", "http://127.0.0.1:11434/v1")
-        model = os.getenv("MODEL_NAME", "gemma4:e4b")
-        api_key = os.getenv("MODEL_API_KEY", "local")
-        extra_body = {"think": False, "options": {"num_ctx": 8192}} if "11434" in base_url else {}
+        base_url = os.getenv("MODEL_API_BASE")
+        model = os.getenv("MODEL_NAME")
+        if not base_url or not model:
+            raise HTTPException(
+                status_code=503,
+                detail="MODEL_API_BASE and MODEL_NAME must configure one LLM endpoint",
+            )
+        api_key = os.getenv("MODEL_API_KEY", "EMPTY")
+        try:
+            extra_body = json.loads(os.getenv("MODEL_EXTRA_BODY", "{}"))
+        except json.JSONDecodeError as exc:
+            raise HTTPException(
+                status_code=500,
+                detail=f"MODEL_EXTRA_BODY is invalid JSON: {exc}",
+            ) from exc
         planner = IRPlanner(
             graph,
+            bundle,
             base_url=base_url,
             model=model,
             api_key=api_key,
             extra_body=extra_body,
         )
-        return planner.analyze().model_dump()
+        try:
+            return planner.analyze().model_dump()
+        except InvestigationError as exc:
+            raise HTTPException(status_code=502, detail=str(exc)) from exc
 
     return app

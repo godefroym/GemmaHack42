@@ -22,7 +22,7 @@ for _ in {1..60}; do
 done
 
 if [[ "${neo4j_health:-}" != "healthy" ]]; then
-  printf "Neo4j did not become healthy; continuing with the JSON fallback.\n" >&2
+  printf "Neo4j did not become healthy; writing the canonical JSON graph only.\n" >&2
   uv run gemma-ir analyze "${evidence_path}" --output-dir "${output_dir}"
 else
   uv run gemma-ir analyze \

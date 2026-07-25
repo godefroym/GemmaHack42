@@ -12,5 +12,10 @@ FIXTURE = Path("eval/fixtures/hospital-demo")
 
 
 @pytest.fixture(scope="session")
-def incident_graph() -> IncidentGraph:
-    return DeterministicAnalyzer().analyze(EvidenceBundle.load(FIXTURE))
+def evidence_bundle() -> EvidenceBundle:
+    return EvidenceBundle.load(FIXTURE)
+
+
+@pytest.fixture(scope="session")
+def incident_graph(evidence_bundle: EvidenceBundle) -> IncidentGraph:
+    return DeterministicAnalyzer().analyze(evidence_bundle)
