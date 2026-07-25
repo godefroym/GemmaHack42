@@ -12,8 +12,20 @@ class FailingModels:
         raise ConnectionError("offline by design")
 
 
+class FailingCompletions:
+    @staticmethod
+    def create(**_kwargs: Any) -> None:
+        raise ConnectionError("offline by design")
+
+
+class FailingChat:
+    completions = FailingCompletions()
+
+
 class FailingClient:
+    # models.list() is a non-fatal probe; the inference call is what must fail.
     models = FailingModels()
+    chat = FailingChat()
 
 
 def test_endpoint_failure_uses_deterministic_fallback(

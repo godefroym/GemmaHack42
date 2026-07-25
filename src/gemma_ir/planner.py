@@ -107,7 +107,13 @@ class IRPlanner:
                     trace,
                     messages,
                 )
-            self.client.models.list()
+            # Optional reachability probe. Some OpenAI-compatible endpoints
+            # (e.g. Anthropic's compatibility layer) do not expose /v1/models,
+            # so its failure must not abort the real chat calls below.
+            try:
+                self.client.models.list()
+            except Exception:  # noqa: BLE001, S110 - probe is best-effort
+                pass
             for round_index in range(self.max_rounds):
                 final_round = round_index == self.max_rounds - 1
                 request: dict[str, Any] = {
