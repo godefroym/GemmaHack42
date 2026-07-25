@@ -1,0 +1,10 @@
+55e11be6edf6839e9dffbf2b3cea1461303a35ba3448e31015638cbc3df50e5c  ./commands/audit_search.txt
+e5be018734cab682e67a19935e9cc9cbafdee8cba3ac7b1a99029611a9a28bb5  ./commands/groups.txt
+2328a22afb163cd88ade18296959ed8ccf7340f3b9d2265917b98f4ef125462c  ./commands/journal.txt
+6c53e69be7d1b582f50adad0349da3879d787db593ae50e76e6d706c20e97179  ./commands/processes.txt
+9c0eebe21d26fc8b2da5d120430d2148c148ade7521a4ef223cd014841258db6  ./commands/sockets.txt
+42849fbc784e94731c35da0427d1acd873dd0791394af64ada3d95e3a2f348a9  ./commands/systemd_pacs.txt
+3942a73e1bbf0dd06f29c60c556b5133c0c108c1a5a9d406461af1a92078c36b  ./commands/users.txt
+7fc87f285011b5995e0f7d895ec0e61f9f43b938b49df43fd813e0d6f0851ac1  ./files/etc/systemd/system/pacs-health-sync.service
+4f517aeaa2b843d5bc4c48fe2cd608cb88791585c1a9f42fb13fdcfff92d8bb9  ./files/usr/local/bin/pacs-health-sync
+dfbb6bbfb89d1fc2d825d71c4d5d0c60d7b5138c09e38826de6722f4909e37fd  ./manifest.json

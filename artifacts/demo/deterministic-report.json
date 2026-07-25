@@ -1,0 +1,433 @@
+{
+  "schema_version": 1,
+  "case_id": "hospital-demo",
+  "confidence": 1.0,
+  "timeline": [
+    {
+      "event_id": "event:2f64a4ed92406e",
+      "timestamp": "2026-07-24T08:40:45+00:00",
+      "event_type": "account_created",
+      "summary": "Local account backup-admin was created",
+      "evidence_ids": [
+        "EV-66596FA6FF1E"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "event_id": "event:d13d3df3da8b26",
+      "timestamp": "2026-07-24T08:41:00+00:00",
+      "event_type": "ssh_key_added",
+      "summary": "An SSH authorized key was installed for backup-admin",
+      "evidence_ids": [
+        "EV-F8C0D560F18A"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "event_id": "event:429060ad7b62f6",
+      "timestamp": "2026-07-24T08:41:17+00:00",
+      "event_type": "authentication",
+      "summary": "SSH public-key login for backup-admin from 203.0.113.77",
+      "evidence_ids": [
+        "EV-1AE017471A31"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "event_id": "event:155e19c80d2566",
+      "timestamp": "2026-07-24T08:42:02+00:00",
+      "event_type": "privilege_change",
+      "summary": "backup-admin was added to the sudo group",
+      "evidence_ids": [
+        "EV-DBCC243A5B6A"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "event_id": "event:5ad9a01ea34bb7",
+      "timestamp": "2026-07-24T08:44:12+00:00",
+      "event_type": "service_created",
+      "summary": "Systemd persistence service pacs-health-sync.service was created",
+      "evidence_ids": [
+        "EV-F0B9F568A10A"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "event_id": "event:7aab5af456271f",
+      "timestamp": "2026-07-24T08:45:03+00:00",
+      "event_type": "credential_access",
+      "summary": "pacs-health-sync read sensitive file /srv/hospital-data/demo-secret.txt",
+      "evidence_ids": [
+        "EV-CD5318FA63DD"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "event_id": "event:b3e42eb5940cfd",
+      "timestamp": "2026-07-24T08:45:31+00:00",
+      "event_type": "data_staged",
+      "summary": "pacs-health-sync staged data in /var/tmp/.pacs-cache/staged-data.tar",
+      "evidence_ids": [
+        "EV-45D52ED34EB7"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "event_id": "event:174ffb28bcca2c",
+      "timestamp": "2026-07-24T08:45:50+00:00",
+      "event_type": "prompt_injection",
+      "summary": "Untrusted evidence contains an instruction targeting the analyst",
+      "evidence_ids": [
+        "EV-D02DE3F5CDC6"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "event_id": "event:be74fe12a1a945",
+      "timestamp": "2026-07-24T08:46:09+00:00",
+      "event_type": "exfiltration_attempt",
+      "summary": "Outbound transfer attempt to 203.0.113.10:8443 was blocked",
+      "evidence_ids": [
+        "EV-2D082540DB2D"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "event_id": "event:1eeb2287448c9a",
+      "timestamp": null,
+      "event_type": "service_file_collected",
+      "summary": "Collected systemd unit pacs-health-sync.service",
+      "evidence_ids": [
+        "EV-9D8EA363E1E7"
+      ],
+      "confidence": 1.0
+    },
+    {
+      "event_id": "event:f82270a3285504",
+      "timestamp": null,
+      "event_type": "suspicious_file_collected",
+      "summary": "Collected locally installed executable /usr/local/bin/pacs-health-sync",
+      "evidence_ids": [
+        "EV-4589CB85E38D"
+      ],
+      "confidence": 1.0
+    }
+  ],
+  "attack_path": [
+    {
+      "step": 1,
+      "event_id": "event:2f64a4ed92406e",
+      "summary": "Local account backup-admin was created",
+      "evidence_ids": [
+        "EV-66596FA6FF1E"
+      ]
+    },
+    {
+      "step": 2,
+      "event_id": "event:d13d3df3da8b26",
+      "summary": "An SSH authorized key was installed for backup-admin",
+      "evidence_ids": [
+        "EV-F8C0D560F18A"
+      ]
+    },
+    {
+      "step": 3,
+      "event_id": "event:429060ad7b62f6",
+      "summary": "SSH public-key login for backup-admin from 203.0.113.77",
+      "evidence_ids": [
+        "EV-1AE017471A31"
+      ]
+    },
+    {
+      "step": 4,
+      "event_id": "event:155e19c80d2566",
+      "summary": "backup-admin was added to the sudo group",
+      "evidence_ids": [
+        "EV-DBCC243A5B6A"
+      ]
+    },
+    {
+      "step": 5,
+      "event_id": "event:5ad9a01ea34bb7",
+      "summary": "Systemd persistence service pacs-health-sync.service was created",
+      "evidence_ids": [
+        "EV-F0B9F568A10A"
+      ]
+    },
+    {
+      "step": 6,
+      "event_id": "event:7aab5af456271f",
+      "summary": "pacs-health-sync read sensitive file /srv/hospital-data/demo-secret.txt",
+      "evidence_ids": [
+        "EV-CD5318FA63DD"
+      ]
+    },
+    {
+      "step": 7,
+      "event_id": "event:b3e42eb5940cfd",
+      "summary": "pacs-health-sync staged data in /var/tmp/.pacs-cache/staged-data.tar",
+      "evidence_ids": [
+        "EV-45D52ED34EB7"
+      ]
+    },
+    {
+      "step": 8,
+      "event_id": "event:be74fe12a1a945",
+      "summary": "Outbound transfer attempt to 203.0.113.10:8443 was blocked",
+      "evidence_ids": [
+        "EV-2D082540DB2D"
+      ]
+    }
+  ],
+  "techniques": [
+    {
+      "technique_id": "T1005",
+      "name": "Data from Local System",
+      "evidence_ids": [
+        "EV-45D52ED34EB7"
+      ],
+      "confidence": 0.95
+    },
+    {
+      "technique_id": "T1048.003",
+      "name": "Exfiltration Over Alternative Protocol: Exfiltration Over Unencrypted Non-C2 Protocol",
+      "evidence_ids": [
+        "EV-2D082540DB2D"
+      ],
+      "confidence": 0.95
+    },
+    {
+      "technique_id": "T1098.004",
+      "name": "Account Manipulation: SSH Authorized Keys",
+      "evidence_ids": [
+        "EV-F8C0D560F18A"
+      ],
+      "confidence": 0.95
+    },
+    {
+      "technique_id": "T1136.001",
+      "name": "Create Account: Local Account",
+      "evidence_ids": [
+        "EV-66596FA6FF1E"
+      ],
+      "confidence": 0.95
+    },
+    {
+      "technique_id": "T1543.002",
+      "name": "Create or Modify System Process: Systemd Service",
+      "evidence_ids": [
+        "EV-F0B9F568A10A"
+      ],
+      "confidence": 0.95
+    },
+    {
+      "technique_id": "T1552.001",
+      "name": "Unsecured Credentials: Credentials In Files",
+      "evidence_ids": [
+        "EV-CD5318FA63DD"
+      ],
+      "confidence": 0.95
+    }
+  ],
+  "iocs": [
+    {
+      "id": "account:b254897f75d083",
+      "type": "Account",
+      "value": "backup-admin",
+      "evidence_ids": [
+        "EV-1AE017471A31",
+        "EV-66596FA6FF1E",
+        "EV-DBCC243A5B6A",
+        "EV-F0B9F568A10A",
+        "EV-F8C0D560F18A"
+      ]
+    },
+    {
+      "id": "endpoint:0c25434b09c620",
+      "type": "Endpoint",
+      "value": "203.0.113.77",
+      "evidence_ids": [
+        "EV-1AE017471A31"
+      ]
+    },
+    {
+      "id": "endpoint:dd5e8456d2f356",
+      "type": "Endpoint",
+      "value": "203.0.113.10:8443",
+      "evidence_ids": [
+        "EV-2D082540DB2D"
+      ]
+    },
+    {
+      "id": "file:2095442a3c3cb3",
+      "type": "File",
+      "value": "/home/backup-admin/.ssh/authorized_keys",
+      "evidence_ids": [
+        "EV-F8C0D560F18A"
+      ]
+    },
+    {
+      "id": "file:5b018deff15dcd",
+      "type": "File",
+      "value": "/var/tmp/.pacs-cache/staged-data.tar",
+      "evidence_ids": [
+        "EV-45D52ED34EB7"
+      ]
+    },
+    {
+      "id": "file:70ec81260b6d97",
+      "type": "File",
+      "value": "/usr/local/bin/pacs-health-sync",
+      "evidence_ids": [
+        "EV-4589CB85E38D"
+      ]
+    },
+    {
+      "id": "file:9c39376943b491",
+      "type": "File",
+      "value": "/etc/systemd/system/pacs-health-sync.service",
+      "evidence_ids": [
+        "EV-9D8EA363E1E7",
+        "EV-F0B9F568A10A"
+      ]
+    },
+    {
+      "id": "file:9e5c93d9399c94",
+      "type": "File",
+      "value": "/srv/hospital-data/demo-secret.txt",
+      "evidence_ids": [
+        "EV-CD5318FA63DD"
+      ]
+    },
+    {
+      "id": "process:f0da955d46aa49",
+      "type": "Process",
+      "value": "/usr/bin/curl",
+      "evidence_ids": [
+        "EV-2D082540DB2D"
+      ]
+    },
+    {
+      "id": "service:77fc963cf3d9cc",
+      "type": "Service",
+      "value": "pacs-health-sync.service",
+      "evidence_ids": [
+        "EV-9D8EA363E1E7",
+        "EV-F0B9F568A10A"
+      ]
+    },
+    {
+      "id": "service:9b24afbd0ed9dc",
+      "type": "Service",
+      "value": "pacs-health-sync",
+      "evidence_ids": [
+        "EV-45D52ED34EB7",
+        "EV-CD5318FA63DD"
+      ]
+    }
+  ],
+  "policy_alerts": [
+    {
+      "event_id": "event:174ffb28bcca2c",
+      "type": "prompt_injection",
+      "decision": "blocked_as_untrusted_evidence",
+      "evidence_ids": [
+        "EV-D02DE3F5CDC6"
+      ]
+    }
+  ],
+  "unknowns": [
+    "The origin and owner of the unauthorized SSH key are not proven",
+    "A blocked outbound connection does not prove successful exfiltration",
+    "The collected evidence does not prove whether other hosts were affected"
+  ],
+  "remediation": [
+    {
+      "phase": "containment",
+      "action": "Keep the affected host isolated from routed networks",
+      "rationale": "Limit further command-and-control or exfiltration attempts",
+      "modifies_system": false,
+      "requires_human_approval": false,
+      "evidence_ids": [
+        "EV-1AE017471A31",
+        "EV-2D082540DB2D",
+        "EV-45D52ED34EB7",
+        "EV-66596FA6FF1E",
+        "EV-CD5318FA63DD",
+        "EV-DBCC243A5B6A",
+        "EV-F0B9F568A10A",
+        "EV-F8C0D560F18A"
+      ]
+    },
+    {
+      "phase": "evidence_preservation",
+      "action": "Create a forensic disk snapshot and preserve the evidence archive",
+      "rationale": "Preserve state before any modifying remediation",
+      "modifies_system": false,
+      "requires_human_approval": false,
+      "evidence_ids": [
+        "EV-1AE017471A31",
+        "EV-2D082540DB2D",
+        "EV-45D52ED34EB7",
+        "EV-66596FA6FF1E",
+        "EV-CD5318FA63DD",
+        "EV-DBCC243A5B6A",
+        "EV-F0B9F568A10A",
+        "EV-F8C0D560F18A"
+      ]
+    },
+    {
+      "phase": "eradication",
+      "action": "Disable the unauthorized account, key, and persistence service",
+      "rationale": "Remove directly observed access and persistence mechanisms",
+      "modifies_system": true,
+      "requires_human_approval": true,
+      "evidence_ids": [
+        "EV-1AE017471A31",
+        "EV-2D082540DB2D",
+        "EV-45D52ED34EB7",
+        "EV-66596FA6FF1E",
+        "EV-CD5318FA63DD",
+        "EV-DBCC243A5B6A",
+        "EV-F0B9F568A10A",
+        "EV-F8C0D560F18A"
+      ]
+    },
+    {
+      "phase": "recovery",
+      "action": "Reimage or restore the server from a verified known-good source",
+      "rationale": "Observed privileged persistence makes in-place trust recovery uncertain",
+      "modifies_system": true,
+      "requires_human_approval": true,
+      "evidence_ids": [
+        "EV-1AE017471A31",
+        "EV-2D082540DB2D",
+        "EV-45D52ED34EB7",
+        "EV-66596FA6FF1E",
+        "EV-CD5318FA63DD",
+        "EV-DBCC243A5B6A",
+        "EV-F0B9F568A10A",
+        "EV-F8C0D560F18A"
+      ]
+    },
+    {
+      "phase": "validation",
+      "action": "Rotate exposed credentials and monitor authentication and egress",
+      "rationale": "Validate that access and exfiltration indicators do not recur",
+      "modifies_system": true,
+      "requires_human_approval": true,
+      "evidence_ids": [
+        "EV-1AE017471A31",
+        "EV-2D082540DB2D",
+        "EV-45D52ED34EB7",
+        "EV-66596FA6FF1E",
+        "EV-CD5318FA63DD",
+        "EV-DBCC243A5B6A",
+        "EV-F0B9F568A10A",
+        "EV-F8C0D560F18A"
+      ]
+    }
+  ],
+  "warnings": []
+}

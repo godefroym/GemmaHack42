@@ -1,0 +1,24 @@
+.DS_Store
+.env
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+
+# Large, reproducible offline artifacts
+artifacts/containers/*
+artifacts/models/*
+artifacts/ubuntu/*
+!artifacts/containers/.gitkeep
+!artifacts/models/.gitkeep
+!artifacts/ubuntu/.gitkeep
+!artifacts/README.md
+
+# Generated evidence and evaluation output
+cases/*
+eval/results/*
+!cases/.gitkeep
+!eval/results/.gitkeep
+
+# Downloaded third-party test definitions
+third_party/atomic-red-team/

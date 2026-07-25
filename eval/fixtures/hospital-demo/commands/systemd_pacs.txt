@@ -1,0 +1,4 @@
+● pacs-health-sync.service - PACS health synchronization
+     Loaded: loaded (/etc/systemd/system/pacs-health-sync.service; enabled)
+     Active: active (running) since Fri 2026-07-24 08:44:14 UTC
+   Main PID: 1104 (pacs-health-s)

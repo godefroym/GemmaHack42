@@ -1,0 +1,3 @@
+root:x:0:0:root:/root:/bin/bash
+pacs-service:x:997:997::/opt/hospital/pacs:/usr/sbin/nologin
+backup-admin:x:1001:1001::/home/backup-admin:/bin/bash

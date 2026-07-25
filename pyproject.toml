@@ -1,0 +1,45 @@
+[project]
+name = "gemma-ir-lab"
+version = "0.1.0"
+description = "Local-first incident response lab powered by Gemma"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "fastapi>=0.116",
+  "google-genai>=1.0",
+  "httpx>=0.28",
+  "jinja2>=3.1",
+  "neo4j>=6.2.0",
+  "openai>=1.100",
+  "orjson>=3.10",
+  "pydantic>=2.11",
+  "python-multipart>=0.0.20",
+  "pyyaml>=6.0",
+  "rich>=14.0",
+  "typer>=0.16",
+  "uvicorn[standard]>=0.35",
+  "zstandard>=0.25.0",
+]
+
+[project.scripts]
+gemma-ir = "gemma_ir.cli:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/gemma_ir"]
+
+[dependency-groups]
+dev = [
+  "pytest>=8.4",
+  "pytest-asyncio>=1.1",
+  "ruff>=0.12",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"

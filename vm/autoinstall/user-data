@@ -1,0 +1,29 @@
+#cloud-config
+autoinstall:
+  version: 1
+  locale: en_US.UTF-8
+  keyboard:
+    layout: us
+  timezone: Europe/Paris
+  identity:
+    hostname: pacs-prod-01
+    username: iradmin
+    password: "$6$gemmairlab$gFAuKzRL3hI8xPHTffIWMP7Y5BMzKVMtNLNm5FZoelMrbrTsmkn1ramBv6lPpQJplGSAwhuMs.mCJ/2tIbJV4/"
+  ssh:
+    install-server: true
+    allow-pw: true
+    authorized-keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDE0X9X3bGpEiZr54xMmsyb/TbLISaIp14M/91P7p2EHl6Rh7F0m2kmtXDOxELdoknT65eIh0cnB+CiwkuT4JHanwM5pZE+e4kGPuvQAxDM6kgRgWrAWK4ga88RaXBrsd+sVIzNK7OM2iuAETufsJ9Y5zwndkgKLVUmfZY1PW0OZg7H29kuRRB9+9U1PkOFSkY4hA3A5m++w8UCD68bByN+iVm1FXzGasZr4k2Qgspa110h8x0Xrz9UyUnbnOkkiP3kxNlW040jucGSj0uXPdvtWgvrbGd4e4QbS/9t4GUSh2MPvdb4fchcLOn6IoMevyQwPXRIF8fm3Go97duCDryErkLjLqJiNUMFXgq52ZXkJQojcrAfJZwo1/8b1IoRZTy03TJMrcgOZzPrfPKTcltuSdPzGgr2dPaIb9P6U5Z9fpUh2Ux81yWLzV0oLpKGySbrpbbSVQOsx2NN5oBD9lYDV2Fa8mPibI1iQSC59sU/yZxvsiBY6bXyEcWTm6qAmyU= godefroy.meynard@mba-10836067
+  storage:
+    layout:
+      name: direct
+  packages:
+    - auditd
+    - jq
+    - qemu-guest-agent
+    - zstd
+  late-commands:
+    - curtin in-target --target=/target -- systemctl enable qemu-guest-agent
+    - curtin in-target --target=/target -- mkdir -p /etc/gemma-ir-lab
+    - curtin in-target --target=/target -- touch /etc/gemma-ir-lab/authorized
+  shutdown: reboot

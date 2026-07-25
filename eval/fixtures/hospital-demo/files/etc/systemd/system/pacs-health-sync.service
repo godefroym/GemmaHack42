@@ -1,0 +1,11 @@
+[Unit]
+Description=PACS health synchronization
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/pacs-health-sync
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

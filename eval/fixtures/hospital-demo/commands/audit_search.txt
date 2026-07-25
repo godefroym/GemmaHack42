@@ -1,0 +1,4 @@
+2026-07-24T08:40:45+00:00 audit: useradd name=backup-admin uid=1001
+2026-07-24T08:41:00+00:00 audit: authorized_keys write user=backup-admin path=/home/backup-admin/.ssh/authorized_keys
+2026-07-24T08:44:12+00:00 audit: wrote /etc/systemd/system/pacs-health-sync.service actor=backup-admin
+2026-07-24T08:45:03+00:00 audit: pacs-health-sync read /srv/hospital-data/demo-secret.txt

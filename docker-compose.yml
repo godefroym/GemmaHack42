@@ -1,0 +1,32 @@
+name: gemma-ir
+
+services:
+  neo4j:
+    image: neo4j:2026.06.0
+    container_name: gemma-ir-neo4j
+    restart: unless-stopped
+    environment:
+      NEO4J_AUTH: neo4j/gemma-ir-demo-2026
+      NEO4J_server_memory_heap_initial__size: 512m
+      NEO4J_server_memory_heap_max__size: 1g
+      NEO4J_server_memory_pagecache_size: 512m
+      NEO4J_server_http_advertised__address: localhost:7475
+      NEO4J_server_bolt_advertised__address: localhost:7688
+    ports:
+      - "127.0.0.1:7475:7474"
+      - "127.0.0.1:7688:7687"
+    volumes:
+      - gemma_ir_neo4j_data:/data
+      - gemma_ir_neo4j_logs:/logs
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - "wget -q -O /dev/null http://127.0.0.1:7474 || exit 1"
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 20s
+
+volumes:
+  gemma_ir_neo4j_data:
+  gemma_ir_neo4j_logs:
