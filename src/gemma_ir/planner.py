@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 from collections.abc import Callable
 from typing import Any
@@ -41,14 +42,20 @@ class IRPlanner:
         extra_body: dict[str, Any] | None = None,
         max_rounds: int = 2,
         on_event: Callable[[dict[str, Any]], None] | None = None,
+        timeout_seconds: float | None = None,
     ) -> None:
         self.graph = graph
         self.on_event = on_event
+        # 75 s suits an L40S. A DGX Spark decodes the same plan at roughly a
+        # third of that rate and needs a longer deadline to avoid falling back.
+        self.timeout_seconds = timeout_seconds or float(
+            os.getenv("PLANNER_TIMEOUT_SECONDS", "75")
+        )
         self.registry = ForensicToolRegistry(graph)
         self.client = OpenAI(
             base_url=base_url,
             api_key=api_key,
-            timeout=75,
+            timeout=self.timeout_seconds,
             max_retries=0,
         )
         self.ollama_native_url = (
@@ -241,7 +248,7 @@ class IRPlanner:
             "format": "json",
             "options": options,
         }
-        with httpx.Client(timeout=75) as client:
+        with httpx.Client(timeout=self.timeout_seconds) as client:
             response = client.post(self.ollama_native_url, json=payload)
             response.raise_for_status()
         content = str(response.json().get("message", {}).get("content") or "")
