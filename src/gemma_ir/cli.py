@@ -93,7 +93,9 @@ def plan(
     model: Annotated[str, typer.Option(envvar="MODEL_NAME")] = "gemma4:e4b",
     api_key: Annotated[str, typer.Option(envvar="MODEL_API_KEY", hide_input=True)] = "local",
     output: Annotated[Path, typer.Option("--output", "-o")] = Path("artifacts/demo/llm-plan.json"),
-    disable_thinking: Annotated[bool, typer.Option("--disable-thinking")] = True,
+    disable_thinking: Annotated[
+        bool, typer.Option("--disable-thinking/--no-disable-thinking")
+    ] = True,
 ) -> None:
     """Run the bounded LLM planner, with an automatic deterministic fallback."""
     graph = load_graph(evidence)
