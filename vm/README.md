@@ -48,6 +48,32 @@ The selected Atomic Red Team definitions are references for the ATT&CK mapping.
 The deterministic scenario script is used for the live demo because it produces
 the same evidence every time and does not download payloads.
 
+## Ransomware-impact scenario
+
+`run-ransomware-scenario.sh` stages a second, independent case on a clean clone:
+the WannaCry-style impact playbook of stopping the PACS service (T1489),
+destroying backups and snapshots (T1490), and encrypting imaging data (T1486).
+Run it instead of `run-scenario.sh`, then collect with the case id:
+
+```bash
+sudo ./run-ransomware-scenario.sh
+sudo ./collect-evidence.sh hospital-ransomware
+```
+
+It is fully synthetic: no real malware runs, nothing is truly encrypted (only
+placeholder `.locked` files are written), and the destructive steps only touch
+the lab directories the script creates (`/srv/hospital-data`, `/srv/backups`).
+The stolen-credential login marker uses `198.51.100.23` (TEST-NET-2). The ground
+truth is written to `/root/gemma-ir-ransomware-ground-truth.json`; treat it the
+same way as the first scenario. `cleanup-scenario.sh` removes both scenarios.
+
+The offline counterpart lives at `eval/fixtures/hospital-ransomware/` and drives
+the tests and dashboard without a VM:
+
+```bash
+./scripts/run-demo.sh eval/fixtures/hospital-ransomware --serve
+```
+
 ## Reproducible unattended installation
 
 The current `Gemma IR Victim` VM was installed from the verified Ubuntu Server

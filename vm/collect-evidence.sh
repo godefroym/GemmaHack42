@@ -60,7 +60,12 @@ capture journal journalctl --since "24 hours ago" --no-pager --output=short-iso-
 capture audit_search ausearch --start today --raw
 capture package_debsums dpkg-query -W -f="\${binary:Package}\t\${Version}\n"
 capture cron find /etc/cron.d /etc/cron.daily /var/spool/cron -maxdepth 2 -ls
+# Storage state shows the ransomware impact: encrypted .locked files present and
+# the nightly backup directory destroyed.
+capture storage ls -la /srv/hospital-data /srv/backups
 
+# One collector serves both scenarios; ransomware artifacts are only copied when
+# present, so the guard below keeps the compromise/intrusion cases independent.
 for source_path in \
   /etc/passwd \
   /etc/group \
@@ -68,6 +73,9 @@ for source_path in \
   /home/backup-admin/.ssh/authorized_keys \
   /etc/systemd/system/pacs-health-sync.service \
   /usr/local/bin/pacs-health-sync \
+  /etc/systemd/system/pacs-archive.service \
+  /usr/local/bin/pacs-crypt \
+  /srv/hospital-data/HOW_TO_DECRYPT.txt \
   /var/log/auth.log \
   /var/log/audit/audit.log; do
   if [[ -f "${source_path}" ]]; then

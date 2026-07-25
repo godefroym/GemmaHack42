@@ -1,0 +1,10 @@
+84e44a6867d895c0702881ad396ef054f790cff5824b64271513521c0561c562  ./commands/audit_search.txt
+81aacb2eeef20100b1e0835086940b727310ee28174405cf139b40ac52042428  ./commands/groups.txt
+2da78a4ad9fe9c610a0dfad18665a46ca5b6a382d52d92688aa32cde70bf2a63  ./commands/journal.txt
+fdb918d6018f7c2b0536a807d6fac7dc0168b65d5d99fbf544991450c95a10ce  ./commands/processes.txt
+6de5a909b16f5cf3b7c63275ceba51417a89bca61c7ea704c42decba08db8307  ./commands/sockets.txt
+7ebdaed66627dd0b2f5d90da591d289c0f647dc2a86425114b0d313c441bae5b  ./commands/storage.txt
+06b6a5c0b9594903d94c462ffe0e0679b97945068c8f8ddd130e5e211d073b33  ./commands/systemd_pacs.txt
+e7c8ca7103faddd558045a1d21422772396eba9dfef0738b19e62a0d465d706b  ./commands/users.txt
+57d6726804e2f886ff073096310d0f100735b58a60b3ecb39d6a3d98d014d8e3  ./files/usr/local/bin/pacs-crypt
+4bf133b11aa9106f90e1e3d98a6d18358ffcdb58445f9b0ea3ba9e8867fa55ce  ./manifest.json

@@ -18,6 +18,15 @@ rm -rf /var/tmp/.pacs-cache
 userdel --remove backup-admin 2>/dev/null || true
 rm -f /root/.gemma-ir-demo-key /root/.gemma-ir-demo-key.pub
 rm -f /root/gemma-ir-ground-truth.json
+
+# Ransomware scenario artifacts (only the lab-owned paths it created).
+systemctl disable --now pacs-archive.service 2>/dev/null || true
+rm -f /etc/systemd/system/pacs-archive.service
+rm -f /usr/local/bin/pacs-crypt
+rm -rf /srv/backups /srv/hospital-data/patient-4821 /srv/hospital-data/patient-5190
+rm -f /srv/hospital-data/HOW_TO_DECRYPT.txt
+rm -f /root/gemma-ir-ransomware-ground-truth.json
+
 systemctl daemon-reload
 
 printf "Synthetic scenario artifacts removed. Restore the clean snapshot for a "
