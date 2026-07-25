@@ -265,6 +265,7 @@ class IRPlanner:
                 return PlannerEnvelope(
                     case_id=self.graph.case_id,
                     mode="llm",
+                    model=self.model,
                     deterministic_report=baseline,
                     llm_analysis=analysis,
                     tool_trace=trace,

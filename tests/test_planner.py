@@ -172,6 +172,7 @@ def test_model_drives_the_complete_tool_workflow(
     }
     assert "tools" not in completions.requests[4]
     assert result.mode == "llm"
+    assert result.model == "gemma"
     assert len(result.tool_trace) == 7
     assert all(item["ok"] is True for item in result.tool_trace)
     assert result.llm_analysis["scope"]["status"] == "host_only"

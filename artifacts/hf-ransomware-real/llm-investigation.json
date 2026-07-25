@@ -2,6 +2,7 @@
   "schema_version": 1,
   "case_id": "hospital-ransomware",
   "mode": "llm",
+  "model": "google/gemma-4-31B-it-qat-w4a16-ct",
   "deterministic_report": {
     "schema_version": 1,
     "case_id": "hospital-ransomware",

@@ -182,6 +182,20 @@ limitations: the scope wording does not emphasize the absence of external
 telemetry enough, and the remediation plan should place forensic preservation
 before deleting the staged archive.
 
+For the hackathon demonstration, the ransomware run has an auditable execution
+view at `artifacts/hf-ransomware-real/llm-execution.html`: it shows the six
+investigation rounds, all model-selected tools, the grounded verdict and the
+human-approval boundary. See
+[`docs/GEMMA-EXECUTION-DEMO.md`](docs/GEMMA-EXECUTION-DEMO.md) for the diagram
+and a short presentation script.
+
+`artifacts/hf-ransomware-real/terminal-replay.html` provides the step-by-step
+version: one click starts an automatic six-stage sequence on an SSH terminal
+connected to the analysis appliance. It shows shell-equivalent forensic
+operations and only the results that advance the diagnosis. Those results are
+regenerated from the matching local evidence bundle rather than invented for
+the UI.
+
 The 32,768-token endpoint measured a 72,970-token GPU KV-cache capacity, or
 2.23 concurrent maximum-length requests. A 65,536-token single-investigation
 profile is therefore feasible on the same L40S; 128k is not with this exact

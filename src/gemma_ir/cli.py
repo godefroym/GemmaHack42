@@ -13,10 +13,13 @@ from rich.table import Table
 from gemma_ir.api import create_app
 from gemma_ir.bundle import EvidenceBundle
 from gemma_ir.deterministic import DeterministicAnalyzer, build_deterministic_report
+from gemma_ir.execution import write_llm_execution
 from gemma_ir.graph import write_graph_json
+from gemma_ir.models import PlannerEnvelope
 from gemma_ir.neo4j_store import Neo4jGraphStore
 from gemma_ir.planner import InvestigationError, IRPlanner
 from gemma_ir.render import write_visualizations
+from gemma_ir.terminal_replay import write_terminal_replay
 from gemma_ir.tools import ForensicToolRegistry
 
 app = typer.Typer(no_args_is_help=True, help="Local-first Gemma incident response.")
@@ -155,8 +158,16 @@ def plan(
     )
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(result.model_dump_json(indent=2) + "\n", encoding="utf-8")
+    execution_path = write_llm_execution(result, output.with_suffix(".html"))
+    terminal_path = write_terminal_replay(
+        result,
+        ForensicToolRegistry(graph, bundle),
+        output.with_name(f"{output.stem}-terminal.html"),
+    )
     console.print(f"Investigation complete; tool calls: {len(result.tool_trace)}")
     console.print(f"Output: {output.resolve()}")
+    console.print(f"Execution trace: {execution_path.resolve()}")
+    console.print(f"Terminal replay: {terminal_path.resolve()}")
 
 
 @app.command()
@@ -196,10 +207,61 @@ def investigate(
         investigation.model_dump_json(indent=2) + "\n",
         encoding="utf-8",
     )
+    execution_path = write_llm_execution(
+        investigation,
+        output_dir / "llm-execution.html",
+    )
+    terminal_path = write_terminal_replay(
+        investigation,
+        ForensicToolRegistry(graph, bundle),
+        output_dir / "terminal-replay.html",
+    )
     console.print(
         f"LLM investigation complete; tool calls: {len(investigation.tool_trace)}"
     )
     console.print(f"investigation: {investigation_path.resolve()}")
+    console.print(f"execution trace: {execution_path.resolve()}")
+    console.print(f"terminal replay: {terminal_path.resolve()}")
+
+
+@app.command("render-execution")
+def render_execution(
+    investigation: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    output: Annotated[Path, typer.Option("--output", "-o")] = Path(
+        "artifacts/demo/llm-execution.html"
+    ),
+) -> None:
+    """Render an auditable execution view from a recorded LLM investigation."""
+    envelope = PlannerEnvelope.model_validate_json(
+        investigation.read_text(encoding="utf-8")
+    )
+    write_llm_execution(envelope, output)
+    console.print(f"Execution trace: {output.resolve()}")
+
+
+@app.command("render-terminal-replay")
+def render_terminal_replay(
+    investigation: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    evidence: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    output: Annotated[Path, typer.Option("--output", "-o")] = Path(
+        "artifacts/demo/terminal-replay.html"
+    ),
+) -> None:
+    """Replay recorded LLM tool calls against the matching evidence bundle."""
+    envelope = PlannerEnvelope.model_validate_json(
+        investigation.read_text(encoding="utf-8")
+    )
+    bundle, graph = load_case(evidence)
+    if graph.case_id != envelope.case_id:
+        raise typer.BadParameter(
+            f"Evidence case {graph.case_id!r} does not match {envelope.case_id!r}"
+        )
+    write_terminal_replay(
+        envelope,
+        ForensicToolRegistry(graph, bundle),
+        output,
+    )
+    console.print(f"Terminal replay: {output.resolve()}")
 
 
 @app.command("sync-neo4j")

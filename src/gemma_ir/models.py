@@ -94,6 +94,7 @@ class PlannerEnvelope(BaseModel):
     schema_version: int = 1
     case_id: str
     mode: Literal["llm"]
+    model: str | None = None
     deterministic_report: DeterministicReport
     llm_analysis: dict[str, Any]
     tool_trace: list[dict[str, Any]] = Field(default_factory=list)
