@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Imported animated components retain their upstream implementation.
+    // They remain covered by the production TypeScript build.
+    "src/components/originkit/**",
   ]),
 ]);
 

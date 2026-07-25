@@ -1,0 +1,3 @@
+USER          PID %CPU %MEM    VSZ   RSS TTY STAT START   TIME COMMAND
+pacs-service 2041 99.3  8.7 210344 71000 ?  R   02:11   4:12 /usr/local/bin/pacs-crypt --recursive /srv/hospital-data
+root          611  0.0  0.1  13200  4096 ?  Ss  02:00   0:00 /lib/systemd/systemd-journald

@@ -1,0 +1,4 @@
+○ pacs-archive.service - PACS image archive service
+     Loaded: loaded (/etc/systemd/system/pacs-archive.service; enabled; preset: enabled)
+     Active: inactive (dead) since Thu 2026-08-14 02:09:16 UTC
+    Process: 812 ExecStart=/usr/lib/pacs/archive (code=killed, signal=TERM)

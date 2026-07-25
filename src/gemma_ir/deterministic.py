@@ -26,6 +26,9 @@ TECHNIQUES: dict[str, tuple[str, str]] = {
         "T1048.003",
         ("Exfiltration Over Alternative Protocol: Exfiltration Over Unencrypted Non-C2 Protocol"),
     ),
+    "service_stop": ("T1489", "Service Stop"),
+    "inhibit_recovery": ("T1490", "Inhibit System Recovery"),
+    "data_encrypted": ("T1486", "Data Encrypted for Impact"),
 }
 
 
@@ -290,7 +293,7 @@ class DeterministicAnalyzer:
             )
 
         ssh_match = re.search(
-            rf"accepted publickey for (?P<account>[a-z_][\w-]*) from (?P<ip>{IP_RE})",
+            rf"accepted (?:publickey|password) for (?P<account>[a-z_][\w-]*) from (?P<ip>{IP_RE})",
             text,
             re.IGNORECASE,
         )
@@ -301,7 +304,7 @@ class DeterministicAnalyzer:
                 Observation(
                     "authentication",
                     timestamp,
-                    f"SSH public-key login for {account} from {ip}",
+                    f"SSH login for {account} from {ip}",
                     line,
                     [
                         EntityObservation(
@@ -457,6 +460,83 @@ class DeterministicAnalyzer:
                         ),
                     ],
                     TECHNIQUES["exfiltration_attempt"],
+                )
+            )
+
+        service_stop_match = re.search(
+            r"systemctl\s+stop\s+(?P<service>[\w@.-]+)",
+            text,
+            re.IGNORECASE,
+        )
+        if service_stop_match:
+            service = service_stop_match.group("service").removesuffix(".service")
+            actor_match = re.search(r"actor=(?P<actor>[a-z_][\w-]*)", text)
+            # The stopped unit is a legitimate service, so it is not an IOC itself;
+            # the signal is that the actor halted it moments before encryption.
+            entities = [EntityObservation("Service", service, "target")]
+            if actor_match:
+                entities.append(
+                    EntityObservation("Account", actor_match.group("actor"), "actor")
+                )
+            observations.append(
+                Observation(
+                    "service_stop",
+                    timestamp,
+                    f"Service {service} was stopped before impact",
+                    line,
+                    entities,
+                    TECHNIQUES["service_stop"],
+                )
+            )
+
+        recovery_match = re.search(
+            r"(?:rm\s+-\w+\s+|lvremove\s+(?:-\w+\s+)?|vgremove\s+)"
+            r"(?P<target>/?[\w./-]*(?:backup|snap|shadow)[\w./-]*)",
+            text,
+            re.IGNORECASE,
+        )
+        if recovery_match:
+            target = recovery_match.group("target")
+            actor_match = re.search(r"actor=(?P<actor>[a-z_][\w-]*)", text)
+            entities = [EntityObservation("File", target, "target", {"ioc": True})]
+            if actor_match:
+                entities.append(
+                    EntityObservation("Account", actor_match.group("actor"), "actor")
+                )
+            observations.append(
+                Observation(
+                    "inhibit_recovery",
+                    timestamp,
+                    f"Backup or snapshot {target} was destroyed",
+                    line,
+                    entities,
+                    TECHNIQUES["inhibit_recovery"],
+                )
+            )
+
+        # Matches both encrypted-file writes (a .locked/.enc extension) and the
+        # ransom note dropped alongside the encrypted data.
+        encrypt_match = re.search(
+            r"(?P<process>[\w.-]+)\s+wrote\s+"
+            r"(?P<path>/\S+(?:\.(?:locked|encrypted|enc|crypt)"
+            r"|/(?:HOW_TO_DECRYPT|DECRYPT_INSTRUCTIONS|README_RESTORE)[\w.]*))",
+            text,
+            re.IGNORECASE,
+        )
+        if encrypt_match:
+            process = encrypt_match.group("process")
+            path = encrypt_match.group("path").rstrip(".,")
+            observations.append(
+                Observation(
+                    "data_encrypted",
+                    timestamp,
+                    f"{process} wrote encrypted artifact {path}",
+                    line,
+                    [
+                        EntityObservation("Process", process, "actor", {"ioc": True}),
+                        EntityObservation("File", path, "target", {"ioc": True}),
+                    ],
+                    TECHNIQUES["data_encrypted"],
                 )
             )
 
@@ -699,6 +779,12 @@ class DeterministicAnalyzer:
                 relation = ("actor", "target", "CREATED")
             elif observation.event_type == "exfiltration_attempt":
                 relation = ("actor", "target", "CONNECTED_TO")
+            elif observation.event_type == "service_stop" and "actor" in roles:
+                relation = ("actor", "target", "STOPPED")
+            elif observation.event_type == "inhibit_recovery" and "actor" in roles:
+                relation = ("actor", "target", "DELETED")
+            elif observation.event_type == "data_encrypted":
+                relation = ("actor", "target", "ENCRYPTED")
             if relation and relation[0] in roles and relation[1] in roles:
                 builder.add_edge(
                     roles[relation[0]],
