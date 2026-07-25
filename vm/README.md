@@ -1,5 +1,25 @@
 # Compromised Linux VM
 
+## Quickest path: one command (Docker, cross-platform)
+
+To reproduce a real compromise without UTM, use Docker (installed on the team's
+Ubuntu and Mac machines). The victim runs real systemd in a disposable
+container, so the service persistence and Service Stop steps are genuine, not
+simulated. Run from the workspace root:
+
+```bash
+./scripts/run-victim-lab.sh ransomware
+```
+
+It builds the victim image, compromises it, collects read-only evidence into
+`cases/`, and analyzes it into `artifacts/hospital-ransomware-vm/`. Pass
+`intrusion` for the first scenario. Destroy the victim with
+`docker rm -f gemma-ir-victim`.
+
+The UTM workflow below stays available for the ARM64 demo appliance.
+
+## UTM appliance (manual)
+
 Recommended local configuration:
 
 - UTM virtual machine
