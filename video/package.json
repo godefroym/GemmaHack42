@@ -1,0 +1,25 @@
+{
+  "name": "pandar-video",
+  "version": "0.1.0",
+  "private": true,
+  "description": "PANDAR — 2-minute motion-design presentation. Storyboard in STORYBOARD.md, narration in VO.txt.",
+  "scripts": {
+    "studio": "remotion studio",
+    "render": "remotion render Pandar out/pandar.mp4",
+    "stills": "node scripts/render-stills.mjs",
+    "data": "node scripts/build-case-data.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.499",
+    "@remotion/google-fonts": "4.0.499",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "remotion": "4.0.499"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5"
+  }
+}

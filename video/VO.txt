@@ -1,0 +1,73 @@
+PANDAR — presentation voice-over
+120 seconds · English · picks up after the existing intro (hospital breach + cloud is not allowed)
+
+252 words total. Read at roughly 125 words per minute — slower than feels natural.
+The silences are load-bearing, particularly in scene 4.
+
+Blank lines are pauses. A line on its own gets a beat before and after.
+
+
+[1 · SEAL — 0:00]
+
+So the evidence never leaves.
+
+PANDAR is a forensic analyst that runs inside the building, on the hospital's own
+hardware. No API key. No egress.
+
+
+[2 · RECONSTRUCT — 0:12]
+
+First it hashes every file. Then it parses them line by line — timeline, indicators,
+ATT&CK mappings, an immutable graph.
+
+Thirty-one nodes, in under a second, with no model running at all.
+
+Every line of evidence gets an identifier derived from its own contents.
+
+
+[3 · INVESTIGATE — 0:32]
+
+Then Gemma takes over. Sixteen typed tools, every one read-only.
+
+It picks its own path — on the real machine it made twenty-one calls. But it cannot
+file a report until it has covered integrity, raw evidence, trust, the attack path,
+scope, exfiltration, and the remediation constraints.
+
+Anything off the allowlist comes back blocked.
+
+
+[4 · HOSTILE EVIDENCE — 0:57]
+
+Log messages are attacker-controlled input.
+
+This one is a prompt, aimed at the model.
+
+PANDAR types it, cites it, and keeps it in the timeline — because it happened.
+
+It never becomes a tool call. The tool it asks for does not exist.
+
+And a report that ignores it is rejected.
+
+
+[5 · VALIDATION — 1:22]
+
+Its answer is validated before it is trusted. Four citations that resolve. A real
+attack path. The injection acknowledged. No claim of exfiltration without outside
+telemetry.
+
+If the model can't clear that bar, the investigation fails loudly.
+
+
+[6 · MEASURED — 1:37]
+
+Eighty-seven weighted checks.
+
+On the appliance that sits in the hospital, a twenty-six-billion-parameter Gemma
+scores seventy-nine — at the same speed a laptop runs an eight-billion one.
+
+
+[7 · CLOSE — 1:52]
+
+Evidence goes in. Nothing comes out.
+
+The whole demo runs from a sealed fixture — no GPU, no network.

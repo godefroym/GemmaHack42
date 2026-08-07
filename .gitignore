@@ -29,3 +29,5 @@ third_party/atomic-red-team/
 web/node_modules/
 web/.next/
 web/.vercel
+
+node_modules/
